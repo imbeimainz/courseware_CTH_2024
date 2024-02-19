@@ -391,13 +391,13 @@ Then:
 - find out more about the `iris` dataset. What is it about at all? How many variables are included? How many observations?
 - `rep`licate! find out a function that `rep`licates elements of a vector to produce this
 
-```{r eval=FALSE}
+```
 1 1 1 1
 ```
 
 BONUS: ... and this 
  
-```{r eval=FALSE}
+```
 1 2 3 4 5 1 2 3 4 5 1 2 3 4 5
 ```
 
