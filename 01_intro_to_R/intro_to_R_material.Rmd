@@ -52,10 +52,10 @@ The content will follow closely the slides used during the course itself, with p
 
 **Schedule (tentatively)**
 
-9:30-10:00 --- Troubleshooting & Help desk for installation  
-10:00-12:30 --- Step 0, 1, Bonus, 2 (with short breaks in between)  
+9:00-10:00 --- Step 0 & Bonus: How to make the most of this
+10:00-12:30 --- Step 1, 2, 3 (with short breaks in between)  
 12:30-13:30 --- *Lunch break*  
-13:30-16:30 --- Step 3, 4, Q&As  
+13:30-15:30 --- Step 3, 4, Q&As  
 
 
 # Step 0: R and RStudio, know your tools {#step0 .unnumbered}
