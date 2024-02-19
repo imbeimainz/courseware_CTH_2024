@@ -102,13 +102,13 @@ Why should I *not* use R?
 Get R - and RStudio
 
 - go to https://cloud.r-project.org and get the latest version
-- go to https://www.rstudio.com/products/rstudio/ and download RStudio
+- go to https://posit.co/products/open-source/rstudio/ and download RStudio
 - ... or use your text editor of choice
 
 Alternatives: 
 
 - OpenAnalytics Architect (https://www.getarchitect.io/)
-- Microsoft R Tools for Visual Studio (www.visualstudio.com/vs/rtvs/)
+- Visual Studio Code (https://code.visualstudio.com/)
 - Emacs Speaks Statistics...
 
 
@@ -192,7 +192,7 @@ Nice resources on top:
 
 * your neighbour - if COVID-conform, do interact within each other!
 * your colleagues
-* rdocumentation.org website 
+* https://rdocumentation.org/ website 
 * the web: google, StackOverflow
 
 The main point: describe well your problem, "help others help you"
@@ -707,8 +707,6 @@ df[ , "instrument"]
 df$instrument
 ```
 
-
-
 Back to the survey
 
 ```{r}
@@ -733,7 +731,6 @@ surveyrbioc[c(TRUE,FALSE),] # keep in mind this behavior!
 # guess what this does?
 surveyrbioc$Q2=="PhD student"
 ```
-
 
 ## Exercise session 3
 
@@ -1628,7 +1625,7 @@ Using LaTeX? No problem, you can use $\LaTeX$ here as well!
 
 $\left( f(x) = \sum_{i=0}^{n} \frac{a_i}{1+x} \right)$
 
-What can you do with Rmarkdown?
+What can you do with R markdown?
 
 http://rmarkdown.rstudio.com/gallery.html
 
@@ -1648,7 +1645,7 @@ The price to pay to have an Rmd document is sooooo small - and for that, you get
 - it even looks nice :)
 
 
-### Create an Rmarkdown file 
+### Create an R Markdown file 
 
 To create a new R Markdown file (`.Rmd`), select `File -> New File -> R Markdown...` in RStudio, then choose the file type you want to create. 
 
@@ -1723,7 +1720,7 @@ It was a deep dive, but now...
 - You can create R Markdown files and export them to pdf or html files.
 
 
-## (Much) more on Rmarkdown
+## (Much) more on R Markdown
 
 - http://rmarkdown.rstudio.com/
 - http://stat545.com/block007_first-use-rmarkdown.html
@@ -1735,7 +1732,7 @@ You can do much much more (presentations, websites, manuscripts,...)
 
 ## Exercise session Bonus
 
-- create a new Rmarkdown document
+- create a new R Markdown document
 - can you find out how to generate a word document as output?
 - insert some code you previously used for exploring the small survey data - remember, a fresh session is run when knitting, so you need the commands from the very start!
 
@@ -1764,9 +1761,7 @@ output:
 Made @IMBEI
 
 - https://imbeimainz.github.io/GTIPI2022/ and https://github.com/imbeimainz/GTIPI2022_materials if you want to know more on the principles of data visualization
-- this very repository of course material (keep this monitored over time!)
-
-
+- this very repository of course material (keep this monitored over time!): https://github.com/imbeimainz/courseware_CTH_2024
 
 
 Books
