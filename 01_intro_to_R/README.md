@@ -6,7 +6,7 @@ This file will contain all required information, code chunks, and generated outp
 Contents:
 
 - Step 0: First things first: know your tools, R & RStudio
-- Step 1: Basics of R, Rstudio, help, packages
+- Step 1: Basics of R, RStudio, help, packages
 - Step 2: Data in, data out
 - Step 3: Analyzing (tabular) data: describe, explore, transform, summarise data
 - Step 4: Plotting data
