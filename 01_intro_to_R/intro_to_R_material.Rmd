@@ -1,0 +1,2092 @@
+---
+title: >
+  Introduction to R: first steps, statistics, graphics
+subtitle: >
+  CTH Course Series on Statistics - 2024
+  <p align="center">
+  <a href="https://www.unimedizin-mainz.de/imbei/">
+  IMBEI @ <img src="images/combilogo.png" alt="" height="70"/>
+  <!-- <img src="images/ticardio-logo.png" alt="" height="50"/> -->
+  </a>
+  </p>
+  <br>
+author:
+- name: Annekathrin Ludt (anneludt@uni-mainz.de)<br><a href="https://www.unimedizin-mainz.de/imbei/">IMBEI, University Medical Center Mainz</a><br>
+- name: <a href="https://federicomarini.github.io">Federico Marini (marinif@uni-mainz.de)</a><br><a href="https://www.unimedizin-mainz.de/imbei/">IMBEI, University Medical Center Mainz</a><br><a href="https://twitter.com/FedeBioinfo">`r icons::fontawesome('twitter')` `@FedeBioinfo`</a>
+date: "2024/02/21"
+output: 
+  bookdown::html_document2:
+    toc: true
+    toc_float: true
+    theme: cosmo
+    code_folding: show
+    code_download: true
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#",
+  error = FALSE,
+  warning = FALSE,
+  message = FALSE
+)
+options(width = 100)
+```
+
+This document contains a comprehensive workflow for the course **Introduction to R: first steps, statistics, graphics**, offered in the context of the CTH Course Series on Statistics - 2024.
+
+The content will follow closely the slides used during the course itself, with particular highlighting regarding the code and its output. This should allow you to replicate all the steps, constituting a starting base for extending the commands e.g. to your own datasets.
+
+
+# Table of contents {.unnumbered}
+
+- Step 0: First things first: know your tools, R & RStudio
+- Step 1: Basics of R, Rstudio, help, packages
+- Step 2: Data in, data out
+- Step 3: Analyzing (tabular) data: describe, explore, transform, summarise data
+- Step 4: Plotting data
+- Bonus Step: reproducible reports, i.e. escaping "the R script"
+
+**Schedule (tentatively)**
+
+9:30-10:00 --- Troubleshooting & Help desk for installation  
+10:00-12:30 --- Step 0, 1, Bonus, 2 (with short breaks in between)  
+12:30-13:30 --- *Lunch break*  
+13:30-16:30 --- Step 3, 4, Q&As  
+
+
+# Step 0: R and RStudio, know your tools {#step0 .unnumbered}
+
+## What is R? Why should I use R? 
+
+Available at `https://www.r-project.org/`
+
+- *free* statistical environment for interactive use
+- intepreted, functional scripting/programming language - you type in, you see output
+- descends from the S language, written by statisticians for statisticians
+  
+What can you do with R?
+
+- Anything!
+  - do calculations
+  - write functions
+  - analyse data. ALL the data. Well, almost. But really, almost.
+  - apply advanced statistical techniques
+  - do beautiful & publication-ready plots
+  - develop interactive web-applications
+  - presentations & documents (this one)
+
+Why should I use R?
+
+- it works! And it is quite powerful
+- it is free, open-source, and available for all OS
+- you can *really* do whatever you might aim to do in terms of statistics
+- it offers awesome possibilities for (interactive) graphing
+- it has a wide, active and competent community (ok, communities: statistics, bioinformatics, machine learning, ...)
+- it can be extended with packages. More power!
+- escape Point-and-Click-land, you work with syntax: you can use, re-use elements, validate & reproduce analysis
+
+Why should I *not* use R?
+
+- you use it or lose it
+- the learning curve might be steep
+- can be frustrating if you have errors
+- help might be available, but it is very technical
+- many packages, a blessing and a curse: how many, how good 
+
+## Let's get started!
+
+Get R - and RStudio
+
+- go to https://cloud.r-project.org and get the latest version
+- go to https://www.rstudio.com/products/rstudio/ and download RStudio
+- ... or use your text editor of choice
+
+Alternatives: 
+
+- OpenAnalytics Architect (https://www.getarchitect.io/)
+- Microsoft R Tools for Visual Studio (www.visualstudio.com/vs/rtvs/)
+- Emacs Speaks Statistics...
+
+
+## First ride: look around you
+
+Open up RStudio - You'll have four panes
+
+- the Source for your scripts and documents (top-left, in the default layout)
+- your Environment/History (top-right),
+- your Files/Plots/Packages/Help/Viewer (bottom-right), and
+- the R Console (bottom-left).
+
+Want to customize this?
+
+Tools $\rightarrow$ Global Options $\rightarrow$ Pane Layout
+
+Advantages of an IDE
+
+- all in one window!
+- keyboard shortcuts, autocompletion, highlighting $\rightarrow$ type easier, do less errors
+
+
+## Folder structure
+
+It is good practice to keep a set of related data, analyses, and text self-contained in a single folder, called the working directory.
+
+*Why?*
+
+* Easier to have "self-contained" research units!
+* A project "does not interfere" with other projects
+* Gives a structure, easier to find things, use, reuse
+* Someone else (including future you) can understand what goes on
+
+*How?*
+
+RStudio projects!  
+Custom settings, per project.
+
+Let's create one live now - and have the workspace NOT saved
+
+*What is the best structure?*
+
+One, used consistently - not gonna touch on naming things as it can get hot quickly :)
+
+With R...
+
+`dir.create()`
+
+`file.edit()`
+
+
+*Where am I doing things?*
+
+The working directory is the place from where R will be looking for and saving the files. 
+
+`getwd()`/`setwd()`, but not in your scripts (fails on others' computers!)
+
+## Interacting with R
+
+Instructions, commands.
+
+Scripts, console - use the editor and have a complete record on what you did!
+
+Shortcuts FTW!
+
+Even better: Reproducible documents, with R Markdown
+
+Nice resources on top:
+* RStudio cheatsheet about the RStudio IDE!
+* the internet/rstats community!
+
+
+## Seeking help
+
+* ?
+* ??
+* built-in RStudio help interface - and shortcuts!
+
+
+### Where to ask for help?
+
+* your neighbour - if COVID-conform, do interact within each other!
+* your colleagues
+* rdocumentation.org website 
+* the web: google, StackOverflow
+
+The main point: describe well your problem, "help others help you"
+
+Others need to reproduce your error to help you better: `saveRDS()`, `dput()`, `sessionInfo()`
+
+
+## R packages
+
+R packages...
+
+- are fundamental components of R ecosystem
+- extend base R functionality for a specific purpose 
+- bundle new functions, data sets, and documentation
+- are contributed by independent developers
+- have dependency management
+
+Repositories:
+
+- CRAN: Managed official package repository network 
+- Bioconductor: curated bioinformatics packages (vignettes mandatory, integrated ecosystem!)
+- GitHub: un-managed, bleeding edge - but also excellent ones ("just not on CRAN")
+
+
+Our contributions so far:
+
+- flowcatchR `https://bioconductor.org/packages/flowcatchR/`
+- pcaExplorer `https://bioconductor.org/packages/pcaExplorer/`
+- ideal `https://bioconductor.org/packages/ideal/`
+- GeneTonic (`https://bioconductor.org/packages/GeneTonic`)
+- iSEE (`https://bioconductor.org/packages/iSEE`)
+- simrec (for simulating recurring events, https://cran.r-project.org/web/packages/simrec/)
+
+
+###  How to use packages
+
+- **Install**: once (for every major R version)
+- **Load**: in each session
+- **Use** like any base R functionality
+
+For Bioconductor packages...
+
+```{r, eval=FALSE}
+install.packages("BiocManager")
+```
+
+```{r, eval=FALSE}
+library("BiocManager")
+BiocManager::install()
+```
+
+
+Relevant commands: 
+
+- `install.packages("packagename")` - check it online at CRAN!
+- `installed.packages()`
+- `.libPaths()`
+- `update.packages()`
+- `library("packagename")`
+- `help(package="packagename")`, `data()`, `browseVignettes()`, `vignette()`, `citation("packagename")`
+
+Something you might have already done, if you worked on RNA-seq data:
+
+```{r eval=FALSE}
+BiocManager::install("SummarizedExperiment")
+BiocManager::install("DESeq2")
+```
+
+## How should I use this material?
+
+Use this very same text document and expand this!
+
+Why? Let's have a look first into the Bonus Content, actually: we navigate to Section \@ref(reproreports) and continue from there.
+
+
+# Step 1: Introduction to R {#step1}
+
+Here we will touch on the first commands in R, so that you can
+
+* Define the following terms as they relate to R: object, assign, call, function, arguments, options.
+* Assign values to objects in R.
+* Learn how to name objects
+* Use comments to inform script.
+* Solve simple arithmetic operations in R.
+* Call functions and use arguments to change their default options.
+* Inspect the content of vectors and manipulate their content.
+* Subset and extract values from vectors.
+* Analyze vectors with missing data.
+
+
+## R is a powerful calculator
+
+... but not just that.
+
+Type the following
+
+```{r}
+2 + 2
+log(2)
+347 * 73841
+7/2
+7%/%2
+7%%2
+```
+
+What did these commands do?
+
+## `r emo::ji("notes")` Help! `r emo::ji("notes")`
+
+```{r}
+# this calls the help for a function to plot a histogram
+?hist
+# this is just the same
+help(hist) ## what about ??
+```
+
+```{r}
+?apropos
+apropos("row")
+```
+
+- integrated help system, with executable examples
+- (for some packages) vignettes (typical problem, commands, and workflow)
+- CRAN Task Views: https://cran.r-project.org/web/views/
+- Books!
+- Courses!
+- Online: mailing lists, forums (StackOverflow, ...), blogs, Twitter (`#rstats`)
+
+
+## Your starting vocabulary - a.k.a. Exercise Session 0
+
+- `getwd()` and `setwd()` - Tab is your friend
+- ` <- `, ` = `: the assignment operator
+- `ls()`, `rm()`
+- `str()`
+- `example()`, `help()`/`?[function]`
+- `print()`
+- `q()`/`quit()`
+- logical operators: `TRUE`,`FALSE`,`!`,`==`,`!=`,`<`,`>`,`<=`,`>=`,`|`,`&`,`xor()`
+- `c()`
+- data have help items too: e.g. `cars`
+
+Find out what these do!
+
+### Exercise Session 0 - Solutions
+
+<details>
+<summary>Click on this to display the solution</summary>
+
+```{r}
+?getwd
+?setwd
+?`<-`
+help(ls)
+help(rm)
+?str
+?example
+help(help)
+?print
+help(quit)
+?c
+?cars
+```
+
+</details>
+
+## Make your life easier - Notes for your future self
+
+- add comments and document your own code
+
+```{r}
+# This is a comment
+```
+
+- write clean code - use spaces, indentation
+- use an editor with syntax highlighting/some form of autocompletion 
+
+Careful here:
+
+- R is case sensitive and has zero-tolerance with mis-spelled names
+- parenthesis: open *and* close them
+- special attention with missing values, factors VS strings: R is clever, but you might think differently
+- do not be stingy with parentheses - if this helps you
+- same goes with comments - your colleagues and your future self will thank you
+
+
+## Exercise session 1
+
+First things first:
+
+* Grab some mini-postit (for those of you participating in person)!
+* Get ready to use the chat & the reactions 
+
+Then:
+
+- find out more about the `iris` dataset. What is it about at all? How many variables are included? How many observations?
+- `rep`licate! find out a function that `rep`licates elements of a vector to produce this
+
+```{r eval=FALSE}
+1 1 1 1
+```
+
+BONUS: ... and this 
+ 
+```{r eval=FALSE}
+1 2 3 4 5 1 2 3 4 5 1 2 3 4 5
+```
+
+### Exercise Session 1 - Solutions
+
+<details>
+<summary>Click on this to display the solution</summary>
+
+```{r}
+rep(1,4)
+
+rep(c(1,2,3,4,5),3)
+```
+
+</details>
+
+## Data types 
+
+R can recognize different general types of data
+
+- numbers (`numeric`)
+- character strings (text)
+- logical (e.g. `class(TRUE)`)
+- factors ("integers with a set of labels") - it is categorical data!
+
+- special ones: dates, time, ...
+ 
+When and where to use which? 
+
+
+## I was curious about the participants
+
+In a previous edition of a similar course, I asked the future participants:
+
+- How old are you?
+- What is your current academic level? (PI, Postdoc, PhD, master)
+- What is your current knowledge level of R? (pro-good-intermediate-poor-none)
+- What is your knowledge of programming languages in general?
+- What is your experience level with genomics and RNA-seq data?
+- How familiar are you with mogon and parallel computing? (I am a regular user/Once in a while i used it/I know it exists/I heard we had some servers around/Is this supposed to be in the cloud?!)
+- What are your expectations from the course? 
+
+
+# Step 2: Data in, data out {#step2}
+
+## Importing data in R
+
+80-20? 90-10? Import, clean, prepare, transform your data
+
+Sources:
+
+- Files, Clipboard, URL
+- **Plain text file: Comma-separated, tab-delimited, ...**
+- R format file
+- SAS / Stata / SPSS file: package `haven`
+- Spreadsheet (Excel): package `readxl` - highly recommended!
+- Database: RSQLite, RPostgreSQL, RMySQL, ...
+
+
+## The vocabulary of importing
+
+... and exporting
+
+- `read.table()`,`write.table()` + `read.csv|delim`
+- the option `stringsAsFactors=FALSE`
+- `load()`,`save()`/`readRDS()`,`saveRDS()`
+- via `haven` : `read_sas()`,`read_spss()` /`write_sas()`,`write_sav()`
+- via `readxl`: `read_excel()`
+
+Check out their documentation pages!
+
+Other options: `rio`, RStudio GUI
+
+
+
+## Take a look at the data 
+
+Go to https://github.com/federicomarini/rbioc2016
+
+$\rightarrow$ `inst/extdata`
+
+$\rightarrow$ `survey_responses.csv`, in its raw format
+
+You can load it directly like this
+
+```{r}
+surveyrbioc <- read.csv("https://raw.githubusercontent.com/federicomarini/rbioc2016/master/inst/extdata/survey_responses.csv")
+```
+
+Or install the package and load it from there
+
+```{r eval=FALSE}
+library("devtools")
+install_github("federicomarini/rbioc2016")
+library("rbioc2016")
+data(surveyrbioc)
+```
+
+
+## Input data: Step by step, by hand?
+
+Sometimes your data is either small and/or not in an Excel-like tabular format.
+
+What to do? You `c`ombine the elements together!
+
+```{r eval=TRUE}
+Q1 <- c(28,27,33,32,29)
+# should return this
+Q1
+
+Q2 <- c("PhD student","PhD student", "Postdoc","PhD student","PhD student")
+Q2
+# ... and so on
+```
+
+
+## Combine the variables to a matrix
+
+We have seen `c()`. We also have
+
+- `cbind`
+- `rbind`
+
+```{r, eval=TRUE}
+firstTwo <- cbind(Q1,Q2)
+firstTwo
+```
+
+```{r}
+rbind(Q1,Q2)
+```
+
+Is this what you wanted?
+
+## Applying the first functions
+
+But first, what can you do on these objects?
+
+```{r error=TRUE}
+sum(Q1)
+sum(Q2)
+summary(Q1)
+summary(Q2)
+str(Q1)
+str(Q2)
+mean(Q1)
+dim(firstTwo)
+firstTwo[,1]
+mean(firstTwo[,1]) # Why, damn, why? Meet coercion
+class(firstTwo)
+```
+
+## `matrix`, `data.frame` and `list`
+
+- a `matrix` can contain one type of data - if numeric, you unleash all the matrix algebra power!
+- a `data.frame` can store more types of data (one per column)
+- a `list` is like a big box where you can put anything - but this is not always what you want
+
+What is best?
+
+Let's try with a `list`
+
+```{r eval=TRUE}
+Q3 <- c("intermediate","poor","good","none","intermediate")
+mylist <- list(Q1,Q2,Q3)
+mylist
+```
+
+```{r}
+## access your elements with
+mylist[[1]]
+mylist[[1]][2]
+```
+
+
+How do we create a `data.frame`?
+
+```{r eval=TRUE}
+mydf <- data.frame(age = Q1,
+                   level = Q2,
+                   rexp = Q3)
+mydf
+class(mydf$age)
+```
+
+
+### Exploring a `data.frame`
+
+```{r}
+mydf$age   # it's all about the money :)
+mydf[,1]
+names(mydf)
+rownames(mydf)
+dim(mydf)
+nrow(mydf)
+ncol(mydf)
+```
+
+```{r tidy=TRUE}
+surveyrbioc <- read.csv("https://raw.githubusercontent.com/federicomarini/rbioc2016/master/inst/extdata/survey_responses.csv")
+head(surveyrbioc)
+tail(surveyrbioc)
+names(surveyrbioc)
+str(surveyrbioc)
+summary(surveyrbioc)
+surveyrbioc[ , ] 
+```
+
+Don't forget some nice built-in like the `View()` function, in RStudio - this is a nice alternative to "pure browsing in Excel".
+
+
+## Exercise session 2
+
+Using the `surveyrbioc` object:
+
+- Calculate the mean age of the participants
+- How many participants did actually take part to the survey?
+- How old was the oldest participant? (`max` can be your help)
+- `t`ranspose the survey data and assign it to another variable
+- Change the column names of this object and save this data set as a tab-separated ASCII file
+- BONUS: what was the youngest participant expecting?
+
+### Exercise Session 2 - Solutions
+
+<details>
+<summary>Click on this to display the solution</summary>
+
+```{r}
+mean(surveyrbioc$Q1)
+
+max(surveyrbioc$Q1)
+
+my_transposed_survey <- t(surveyrbioc)
+
+surveyrbioc_mod <- surveyrbioc
+colnames(surveyrbioc_mod) <- c("age","level","rlevel","prog_level","genomics_level","parcomp_level","expectation")
+
+surveyrbioc_mod$expectation[which.min(surveyrbioc_mod$age)]
+```
+
+</details>
+
+# Step 3: Analyzing (tabular) data {#step3}
+
+Describe, explore, transform, summarise data
+
+## Exploring, subsetting, manipulating, analysing
+
+- `dim(x)` shows the dimensions of an object
+- `str(x)` provides an overview of the structure of an object and the elements it contains
+- `sum(x)`, `mean(x)`, `sd(x)` computes the sum, mean, or standard deviation of all the elements in `x`; `median(x)`, `quantile(x)`
+- `length(x)` returns the number of elements in x (a vector)
+- `sqrt(x)`, `log(x)` take the square root and the natural logarithm of a numeric - element or vector
+- `hist(x, breaks=20, col="blue")` plots a histogram of variable x with 20 bins colored blue
+- `unique(x)` returns the vector of unique elements in x
+- `rm(x)` removes the object x from the environment (`rm(list=ls())` removes all objects)
+- `sessionInfo()` prints information about R session and versions of all attached packages
+- logical operators might often come handy!
+
+
+## Subsetting the data
+
+This is the basic way it works
+
+```{r eval=FALSE}
+surveyrbioc[ROWS,COLUMNS]
+```
+
+You can subset with...
+
+- integers
+- blank spaces
+- names
+- logical vectors
+
+Try to make a guess, given this vector.
+
+```{r eval=TRUE}
+vec <- c(6, 1, 3, 6, 10, 5)
+```
+
+What happens if you do this?
+
+```{r}
+vec[2]
+vec[c(5, 6)]
+vec[-c(5,6)]
+vec > 5
+vec[vec > 5]
+```
+
+
+What happens if you do this?
+
+```{r}
+df <- data.frame(
+  name = c("John", "Paul", "George", "Ringo"),
+  birth = c(1940, 1942, 1943, 1940),
+  instrument = c("guitar", "bass", "guitar", "drums")
+)
+
+df
+
+df[c(2, 4), 3]
+df[ , 1]
+df[ , "instrument"]
+df$instrument
+```
+
+
+
+Back to the survey
+
+```{r}
+# I just want the age
+surveyrbioc[,1] 
+# or
+surveyrbioc$Q1
+
+# the first 4 columns
+surveyrbioc[,c(1,2,3,4)]
+surveyrbioc[,1:4]
+
+# all but the last column
+surveyrbioc[,-7]
+# if you don't know we had 7 columns...
+surveyrbioc[,-ncol(surveyrbioc)]
+
+# you can subset with logical vectors, by row and by column
+surveyrbioc[c(rep(TRUE,10),rep(FALSE,8)),]
+surveyrbioc[c(TRUE,FALSE),] # keep in mind this behavior!
+
+# guess what this does?
+surveyrbioc$Q2=="PhD student"
+```
+
+
+## Exercise session 3
+
+- How many PhD students did reply?
+- What was the proportion of PhD students to all other participants?
+- How old were they on average?
+- How many of the participants were older than 30?
+- How many postdocs were younger than 35?
+- How many of the participants did not reply to the last question? <!-- (`is.na` is your friend) -->
+
+### Exercise Session 3 - Solutions
+
+<details>
+<summary>Click on this to display the solution</summary>
+
+```{r}
+sum(surveyrbioc$Q2 == "PhD student")
+mean(surveyrbioc$Q2 == "PhD student")
+mean(surveyrbioc$Q1[surveyrbioc$Q2 == "PhD student"])
+sum(surveyrbioc$Q1 >= 30)
+sum(surveyrbioc$Q1 < 35 & surveyrbioc$Q2 == "Postdoc")
+sum(is.na(surveyrbioc$Q7))
+```
+
+</details>
+
+## Manipulating and analysing your data
+
+You can
+
+- sort the data (see `sort` and `order`)
+- transform your data: apply rules (formulas, logics, insight altogether)
+- combine two datasets or more (if you `merge` them)
+- do some statistics on your data
+
+
+## Sorting the data
+
+```{r eval=TRUE}
+myord <- order(surveyrbioc$Q1)
+myord
+
+head(surveyrbioc[myord,1:5],4)
+sorted_surv <- surveyrbioc[myord,1:6]
+```
+
+`sort()` returns you the sorted data, `order()` the indices only
+
+
+## Transforming the data 
+
+```{r eval=TRUE}
+# transforming a variable
+newsurvey <- surveyrbioc[,1:5]
+newsurvey$ageroot <- sqrt(newsurvey$Q1)
+head(newsurvey)
+
+# creating groups out of a continuous variable
+newsurvey$agegroup <- cut(newsurvey$Q1,breaks = c(20,30,40))
+head(newsurvey)
+```
+
+Use case for `merge`: you have *two* sets you are playing with! Think in advance what you need for that purpose...
+
+
+## We want statistics! 
+
+Are PhD students *significantly* younger than postdocs? Are there any differences in the age of the three groups?
+
+```{r}
+phds <- surveyrbioc[surveyrbioc$Q2=="PhD student",]
+postdocs <- surveyrbioc[surveyrbioc$Q2=="Postdoc",]
+t.test(phds$Q1,postdocs$Q1)
+aov(data=surveyrbioc,Q1~Q2) # What is missing here?
+```
+
+Much more on this: in the next courses!
+
+
+## Simple yet powerful functions
+
+`tapply`
+
+You want to calculate the median age of each academic group in here
+
+```{r eval=TRUE}
+md <- median(surveyrbioc$Q1)
+md_master <- median(surveyrbioc$Q1[surveyrbioc$Q2=="Master student/else"])
+md_phd <- median(surveyrbioc$Q1[surveyrbioc$Q2=="PhD student"])
+md_postdocs <- median(surveyrbioc$Q1[surveyrbioc$Q2=="Postdoc"])
+c(md_master,md_phd,md_postdocs)
+```
+
+`tapply` splits the data of the first variable on the levels of the second variable, and applies the function (*any* function)
+
+```{r eval=TRUE}
+tapply(X = surveyrbioc$Q1,INDEX = surveyrbioc$Q2,FUN = median)
+```
+
+
+`lapply` and `sapply`
+
+Back to our `iris` dataset
+
+```{r eval=TRUE}
+names(iris)
+```
+
+We want the average sepal length and width, and the same for the petals. Uh, and we want the standard deviation too.
+
+```{r}
+# the unefficient way:
+seplen_m <- mean(iris$Sepal.Length)
+sepwid_m <- mean(iris$Sepal.Width)
+petlen_m <- mean(iris$Petal.Length)
+petwid_m <- mean(iris$Petal.Width)
+
+seplen_m <- sd(iris$Sepal.Length)
+# ... and so on
+```
+
+$\rightarrow$ Apply a Function over a List or Vector
+
+```{r}
+# we will use just the first four columns
+lapply(iris[,1:4],mean)
+sapply(iris[,1:4],mean)
+lapply(iris[,1:4],sd)
+# ...
+```
+
+The major difference is in the presentation of the output
+
+## A very good friend: get a `summary` of your data
+
+*and some other friends...*
+
+Try out `summary` on a `data.frame`
+
+```{r}
+summary(iris)
+```
+
+Alternatives in other packages:
+
+- `describe()` in the `Hmisc` package
+- `skim()` from `skimr`
+- `create_report()` from `Data Explorer`
+
+
+`table`
+
+```{r}
+table(surveyrbioc$Q3)
+table(surveyrbioc$Q4)
+
+table(surveyrbioc$Q2,surveyrbioc$Q3)
+```
+
+- want the sums? Try `addmargins()`
+- looking for the percentage values? `prop.table()`
+- somewhat nicer output: `ftable()`
+
+```{r}
+addmargins(table(surveyrbioc$Q2,surveyrbioc$Q3))
+prop.table(table(surveyrbioc$Q2,surveyrbioc$Q3))
+```
+
+
+Please always do check the docs!
+
+
+
+## Exercise session 4
+
+The `MASS` package contains the dataset `Cars93`, which stores the data on 93 makes of car sold in US
+
+- you'll need the package *and* the data
+- `Type` specifies the type of market the car is aimed at. Find the cheapest car in each type, and the one with the greatest fuel efficiency
+- compute the mean horsepower for each type
+- create two `data.frame`s, one for US cars, the other one with non-US cars
+- export the US cars to a text file
+- save the non-US cars data to a binary file (`.RData`)
+
+### Exercise Session 4 - Solutions
+
+<details>
+<summary>Click on this to display the solution</summary>
+
+```{r}
+library(MASS)
+head(Cars93)
+?Cars93
+tapply(X = Cars93$Min.Price,INDEX = Cars93$Type,FUN = min)
+tapply(X = Cars93$Horsepower,INDEX = Cars93$Type,FUN = mean)
+
+table(Cars93$Origin)
+us_cars <- Cars93[Cars93$Origin == "USA",]
+nonus_cars <- Cars93[Cars93$Origin != "USA",]
+# write.csv(us_cars, file = "us_cars.csv")
+# save(nonus_cars, file = "nonus_cars.RData")
+```
+
+</details>
+
+# Step 4: Plotting data {#step4}
+
+## Graphics in R
+
+ - powerful environment for visualizing scientific data
+ - integrated graphics **AND** statistics
+ - publication-ready quality
+ - fully programmable, highly reproducible
+
+Many ways for the same task:
+
+- base graphics (`plot`)
+- `ggplot2`
+- `lattice`
+- interactive visualizations such as `plotly`, `ggvis` or other libraries
+
+Why bother plotting at all?
+
+- facilitate comparisons
+- identify trends
+- generate hypotheses
+
+
+
+## The `plot` function
+
+First thing: take a look at the overview documentation of `plot`
+
+```{r}
+?plot
+```
+
+We will see
+
+- scatter plots
+- boxplots
+- barplots
+- histograms
+
+
+## `plot` parameters 
+
+Required:
+
+- x variable
+- y variable
+
+Other options
+
+- title with `main`
+- axes labels with `xlab` and `ylab`
+- axes limits with `xlim` and `ylim`
+- symbols, colors and sizes: `pch`, `col` and `cex` - as atomic elements or as vectors
+
+
+## Get to know the data: `mpg`
+
+```{r}
+library(ggplot2) # this is useful per se, and contains the dataset we will be using
+?mpg
+```
+
+    This dataset contains a subset of the fuel economy data that the EPA makes available on http://fueleconomy.gov
+
+```{r}
+# works on RStudio
+# View(mpg)
+# otherwise stick to the classic
+str(mpg)
+```
+
+Make a guess: what do you expect to see between fuel consumption and engine size?
+
+## Scatter plots
+
+```{r eval=TRUE}
+plot(mpg$displ,mpg$cty)
+```
+
+Bonus: what is the `cor`relation?
+
+```{r}
+cor(mpg$displ,mpg$cty)
+cor(mpg$displ,mpg$cty,method="spearman")
+```
+
+
+### Can we do more?
+
+```{r eval=TRUE}
+mpg$mygroup <- as.numeric(factor(mpg$class))
+plot(mpg$displ,mpg$cty,
+     col = mpg$mygroup)
+legend("topright",legend = levels(factor(mpg$class)),col=levels(factor(mpg$mygroup)),pch=1)
+```
+
+
+```{r eval=TRUE}
+plot(mpg$displ,mpg$cty,
+     pch = as.numeric(factor((mpg$class))))
+```
+
+This shows we have quite some overlap of points. What can we do?
+
+Adding some jitter...
+
+```{r eval=TRUE}
+plot(x = mpg$displ + rnorm(nrow(mpg),mean = 0,sd = 0.01),
+     y = mpg$cty + rnorm(rnorm(nrow(mpg),mean = 0,sd = 0.01)),
+     col = mpg$mygroup,
+     main = "now with jitter!")
+```
+
+
+Adding a smoothing line
+
+Trying to see a pattern? Add a smoothing curve.
+
+This one is wrong - missing the reordering of points
+
+```{r eval=TRUE}
+plot(mpg$displ,mpg$cty, col = mpg$mygroup)
+myloess <- loess(cty~displ, data=mpg)
+myfit <- fitted(myloess)
+lines(mpg$displ,myfit)
+legend("topright",legend = levels(factor(mpg$class)),col=levels(factor(mpg$mygroup)),pch=1)
+```
+
+This one is correct!
+
+```{r eval=TRUE}
+plot(mpg$displ,mpg$cty, col = mpg$mygroup)
+myloess <- loess(cty~displ, data=mpg)
+myfit <- fitted(myloess)
+myord <- order(mpg$displ)
+lines(mpg$displ[myord],myfit[myord])
+legend("topright",legend = levels(factor(mpg$class)),col=levels(factor(mpg$mygroup)),pch=1)
+```
+
+`lines` can add (almost) anything (any line). 
+
+`points` works in a similar way to superimpose, well, points
+
+
+## Bar charts
+
+```{r}
+?barplot
+```
+
+```{r eval=TRUE}
+academia_levels <- table(surveyrbioc$Q2)
+barplot(academia_levels)
+```
+
+
+## Boxplots
+
+How is the age distributed across academic levels? Check the help of `boxplot`
+
+- A formula is required!
+- Don't worry, it's nothing but your `y~x` variables - ok, it can get more complicated
+    
+```{r eval=TRUE}
+boxplot(Q1~Q2,
+        data = surveyrbioc)
+```
+
+Splitting on more factors
+
+```{r eval = TRUE}
+boxplot(Q1~Q2+Q3,
+        data = surveyrbioc)
+```
+
+Making it more readable...
+
+```{r eval = TRUE}
+boxplot(Q1~Q2+Q3,
+        data = surveyrbioc,
+        las = 2)
+```
+
+Changing the `par`ameters allows you to control many aspects on plot appearance
+`par` is your best friend - and enemy (see `?par`)
+
+```{r eval=TRUE}
+par(mar=c(15,3,2,2))
+boxplot(Q1~Q2+Q3,data = surveyrbioc,las = 2)
+```
+
+`par( ... )` has many arguments; here, the useful/most used ones
+
+- `mar` for handling the margins
+- `cex`, `col`, `pch` and co. are all parameters of `par`
+- `las` to change the style of the axis labels
+- `mfrow` to draw an array of figures
+
+
+## Histograms
+
+```{r eval=TRUE}
+hist(surveyrbioc$Q1,breaks = 8)
+```
+
+
+## More histograms!
+
+```{r}
+hist(mpg$cty,breaks = 10)
+hist(mpg$cty,breaks = 10, col = "steelblue")
+hist(mpg$cty,breaks = 10, col = "steelblue", border = "gray")
+hist(mpg$cty,breaks = 10, col = "steelblue", border = "gray",main = "Distribution of miles/gallon consumption in city traffic")
+```
+
+
+## How to do nice pie charts
+
+DON'T.
+
+If you **really** need to do it...
+
+```{r}
+?pie
+example(pie) # expecially the last one
+```
+
+```{r}
+pie(c(20, 80), init.angle=-40,
+    col=c("white", "yellow"), 
+    label=c("no pacman", "pacman"),
+    border = "lightgrey")
+```
+
+... or switch from pie to waffle (seriously)
+
+## How to do 3D exploded pie charts
+
+**DON'T**. And this time I mean it
+
+*sadly enough there would be packages for this, too*
+
+
+
+## Extra: *dynamite* plots
+
+a.k.a. Why is this bad?
+
+```{r eval=TRUE}
+age_by_group <- tapply(surveyrbioc$Q1,surveyrbioc$Q2,mean)
+sd_by_group <- tapply(surveyrbioc$Q1,surveyrbioc$Q2,sd)
+mybar <- barplot(age_by_group,col=c("khaki","salmon","firebrick"), ylim=c(0,max(age_by_group) + 5))
+# mybar, inspect it
+arrows(mybar, age_by_group,mybar, (age_by_group + sd_by_group), length = 0.15,angle= 90)
+```
+
+
+Dynamite plots VS boxplots
+
+```{r eval=TRUE}
+boxplot(Q1~Q2,
+        data = surveyrbioc)
+```
+
+Median VS distribution VS actual points... What do you really want to show?
+
+
+## What can you do more with your plot?
+
+- change the points type - see `type` in `?plot`
+- use log scales - see `log`
+- annotate (some of) the points - with `text`
+- change font sizes, styles and so on
+- use special characters with `expression`
+- save the plot
+  - use the point-and-click interface in RStudio
+  - code it
+    
+### Saving your plots
+
+General code structure for this
+
+```
+opendevice()
+...
+code for the plot
+...
+closedevice()
+```
+
+```{r eval=FALSE}
+pdf("myfilename.pdf")
+# see also alternatives:
+## png()
+## jpeg()
+plot(mpg$displ,mpg$cty,
+     col = mpg$mygroup)
+dev.off()
+```
+
+
+
+## Petals and sepals
+
+<img src="images/petal-sepal.jpg" alt="" height="600"/>
+
+## Exercise session 5
+
+Back to the `iris`. Three species are there. Explore the dataset in the following ways:
+
+- draw a histogram of the petal length. What do you see?
+- plot sepal length versus petal length. Add different colors to highlight the species
+- do the same for sepal width and sepal length, and this time use a different symbol for the species. Add a legend and a title if you want
+- (harder) calculate the mean values of each feature for each species, organizing it in a matrix where the rows are the species names. Generate a stacked bar plot with it, and another one where the bars are arranged horizontally
+
+- feel free to go back to the survey data and explore it further!
+
+### Exercise Session 5 - Solutions
+
+<details>
+<summary>Click on this to display the solution</summary>
+
+```{r}
+hist(iris$Petal.Length)
+plot(iris$Sepal.Length,iris$Petal.Length)
+plot(iris$Sepal.Length,iris$Petal.Length,col=iris$Species)
+plot(iris$Sepal.Width,iris$Sepal.Length, pch = as.numeric(factor(iris$Species)))
+legend("topright",legend = levels(factor(iris$Species)),pch=unique(factor(iris$Species)))
+
+sl_means <- tapply(iris$Sepal.Length,iris$Species,mean)
+pl_means <- tapply(iris$Petal.Length,iris$Species,mean)
+sw_means <- tapply(iris$Sepal.Width,iris$Species,mean)
+pw_means <- tapply(iris$Petal.Width,iris$Species,mean)
+mymat <- cbind(sl_means,pl_means,sw_means,pw_means)
+barplot(mymat,legend.text = unique(iris$Species))
+barplot(mymat,beside = TRUE,legend.text = unique(iris$Species))
+```
+
+</details>
+
+## Something cool to have an overview...
+
+```{r eval=TRUE}
+pairs(iris[,1:4],col=iris$Species)
+```
+
+You can use the panels even more cleverly, check the help of `pairs`!
+
+This is a collection on graphs in R - with the underlying code too.
+
+http://shiny.stat.ubc.ca/r-graph-catalog/
+
+
+## The `gapminder` project
+
+Sit and relax/enjoy...
+
+https://www.youtube.com/watch?v=hVimVzgtD6w
+
+<!-- <iframe width="854" height="480" src="https://www.youtube.com/embed/hVimVzgtD6w?t=25" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe> -->
+
+## Meet `ggplot2`
+
+But first, meet the `gapminder` data 
+
+```{r}
+library(gapminder)
+head(gapminder)
+head(country_colors)
+head(continent_colors)
+```
+
+Variables: 
+
+- country 	
+- continent 	
+- year 	
+- lifeExp, life expectancy at birth
+- pop, total population 
+- gdpPercap, per-capita GDP
+
+<!-- <img src="https://raw.githubusercontent.com/jennybc/gapminder/master/data-raw/gapminder-color-scheme-ggplot2.png" alt="" height="400"/> -->
+
+<!-- ![](https://raw.githubusercontent.com/jennybc/gapminder/master/data-raw/gapminder-color-scheme-ggplot2.png) -->
+
+
+## The `ggplot2` philosophy
+
+`gg` stands for the grammar of graphics
+
+- you provide the `data`
+- you map the data to `aes`thetics (shape, size, colour)
+- you add `geom`s to specify how you want to have the data plotted
+- you can have `stat`istical transformations
+- `facet`s allow you to do quick elegant multi plots
+
+It can come across somewhat harder since
+
+- data need to be tidy - one observation per row
+- requires an extra step for abstraction
+
+yet, it makes the whole process of "thinking data" more natural.
+
+
+### A quick dive into the many options
+
+
+```{r eval = TRUE}
+ggplot(gapminder,aes(x = gdpPercap, y = lifeExp))
+```
+
+```{r eval=TRUE}
+ggplot(gapminder,aes(x = gdpPercap, y = lifeExp)) + geom_point()
+```
+
+We can store `ggplot` plot objects into a variable - and build upon that later 
+
+```{r eval=TRUE}
+p <- ggplot(gapminder,aes(x = gdpPercap, y = lifeExp)) 
+p + geom_point()
+```
+
+```{r eval=TRUE}
+p + geom_point() + scale_x_log10()
+p <- p + scale_x_log10()
+```
+
+```{r eval=TRUE}
+p + geom_point(color="blue")
+```
+
+```{r eval=TRUE}
+p + geom_point(color="steelblue", pch=19, size=8, alpha=1/4)
+```
+
+```{r eval=TRUE}
+p + geom_point(aes(color=continent))
+```
+
+```{r eval=TRUE}
+p + geom_point(aes(col=continent), size=4)
+```
+
+```{r eval=TRUE}
+p + geom_point(aes(col=continent, size=pop)) 
+```
+
+```{r eval=TRUE}
+p + geom_point(aes(col=continent, size=pop)) + geom_smooth()
+```
+
+```{r eval=TRUE}
+niceone <- p + geom_point(aes(col=continent, size=pop)) + 
+  geom_smooth(aes(col=continent),se=FALSE)
+niceone
+```
+
+```{r eval=TRUE}
+p + geom_point(aes(col=continent, size=pop)) + 
+  geom_smooth(lwd=2, se=FALSE, method="lm", col="red")
+```
+
+```{r eval=TRUE}
+p + geom_point(aes(col=continent, size=pop)) + 
+  geom_smooth(aes(col=continent),lwd=2, se=FALSE, method="lm")
+```
+
+```{r eval=TRUE}
+p + geom_point() + facet_wrap(~continent) 
+```
+
+```{r eval=TRUE}
+p + geom_point(aes(col=continent)) + facet_wrap(~continent) 
+```
+
+```{r eval=TRUE}
+p + geom_point(aes(col=continent)) + geom_smooth() + facet_wrap(~continent)
+```
+
+### Saving the plots
+
+Becomes de facto easier - works on "plot objects".
+
+```{r eval=FALSE}
+ggsave(file="myplot.png")
+```
+
+### Line plots
+
+```{r eval=TRUE}
+ggplot(gapminder,
+       aes(x = year, y = lifeExp, group = country, color = country)
+       ) +
+  geom_line(lwd = 1, show.legend = FALSE) +
+  scale_color_manual(values = country_colors) +
+  theme_bw() + theme(strip.text = element_text(size = rel(1.1)))
+```
+
+```{r eval=TRUE}
+bp <- ggplot(gapminder,
+       aes(x = year, y = lifeExp, group = country, color = country)
+       ) +
+  geom_line(lwd = 1, show.legend = FALSE) + facet_wrap(~ continent) +
+  scale_color_manual(values = country_colors) + theme(strip.text = element_text(size = rel(1.1)))
+bp
+```
+
+One step away from making things interactive - more interesting? more accessible? more explorable?
+
+```{r eval=TRUE,message=FALSE}
+plotly::ggplotly(bp)
+```
+
+
+### Boxplots
+
+
+```{r eval=TRUE}
+# now it is a categorical x VS continuous y
+p <- ggplot(gapminder, aes(x = continent, y = lifeExp)) 
+```
+
+```{r eval=TRUE}
+p + geom_point()
+```
+
+```{r eval=TRUE}
+p + geom_point(alpha=1/4)
+```
+
+It is so easy to escape *dynamite* plots!
+
+```{r eval=TRUE}
+p + geom_jitter()
+```
+
+```{r eval=TRUE}
+p + geom_jitter(aes(col=continent))
+```
+
+```{r eval=TRUE}
+p + geom_boxplot()
+```
+
+```{r eval=TRUE}
+p + geom_boxplot() + geom_jitter(alpha=1/2)
+```
+
+### Histograms
+
+```{r eval=TRUE}
+p <- ggplot(gapminder, aes(lifeExp))
+p + geom_histogram()
+```
+
+```{r eval=TRUE}
+p + geom_histogram(binwidth=1)
+```
+
+Stacked histogram are much easier in this framework
+
+```{r eval=TRUE}
+p + geom_histogram(aes(color=continent))
+```
+
+```{r eval=TRUE}
+p + geom_histogram(aes(fill=continent))
+```
+
+```{r eval=TRUE}
+p + geom_histogram(aes(fill=continent), position="identity")
+```
+
+... and so is the superimposing of more than one distribution
+
+```{r eval=TRUE}
+p + geom_histogram(aes(fill=continent), position="identity", alpha = 0.4)
+```
+
+Similar to histogram, you can use also density plots
+
+```{r eval=TRUE}
+p + geom_density(aes(fill=continent), alpha=1/4)
+```
+
+### Themes: a quick way to put a new shirt on
+
+```{r eval=TRUE}
+niceone + theme_bw()
+```
+
+```{r eval=TRUE}
+niceone + theme_void()
+```
+
+If you really really really have to...
+
+```{r eval=TRUE}
+library("ggthemes")
+niceone + theme_excel() + scale_color_excel()
+```
+
+## Exercise session 6 - Homework if you want
+
+- try to recreate the plots you did with base graphics, this time using `ggplot2` 
+
+- pick a nice plot you would like to have in your next manuscript: can you think of what you need to do it? I am talking of 
+    - what data type?
+    - what transformations?
+    - what plot type/layer?
+
+
+<!-- # tabular data analysis - on the RNA dataset? -->
+
+<!-- # data visualization -->
+
+<!-- # joining tables (?) -->
+
+<details>
+<summary>Click on this to display the solution</summary>
+
+
+</details>
+
+<!-- # Step 5: SummarizedExperiment: your best friend for "bioinformatics datasets" -->
+
+
+<!-- ## Next steps -->
+
+<!-- ```{r, echo = FALSE, message = FALSE} -->
+<!-- library("tidyverse") -->
+<!-- ``` -->
+
+<!-- Data in bioinformatics is often complex. -->
+<!-- To deal with this, developers define specialised data containers (termed classes) that match the properties of the data they need to handle. -->
+
+<!-- This aspect is central to the **Bioconductor**(https://www.bioconductor.org) project which uses the same **core data infrastructure** across packages. This certainly contributed to Bioconductor's success. Bioconductor package developers are advised to make use of existing infrastructure to provide coherence, interoperability and stability to the project as a whole. -->
+
+
+<!-- To illustrate such an omics data container, we'll present the `SummarizedExperiment` class. -->
+
+<!-- ## SummarizedExperiment -->
+
+<!-- The figure below represents the anatomy of SummarizedExperiment. -->
+
+<!-- ```{r SE,  echo=FALSE, out.width = '80%'} -->
+<!-- knitr::include_graphics("images/SE.svg") -->
+<!-- ``` -->
+
+<!-- ```{r loaddata_dplyr, echo=FALSE, purl=FALSE, message=FALSE} -->
+<!-- # dir.create("data") -->
+<!-- if (!file.exists("data/rnaseq.csv")) -->
+<!-- download.file(url = "https://raw.githubusercontent.com/Bioconductor/bioconductor-teaching/master/data/GSE96870/rnaseq.csv", -->
+<!--               destfile = "data/rnaseq.csv") -->
+<!-- ``` -->
+
+
+<!-- Objects of the class SummarizedExperiment contain : -->
+
+<!-- - **One (or more) assay(s)** containing the quantitative omics data (expression data), stored as a matrix-like object. Features (genes, transcripts, proteins, ...) are defined along the rows and samples along the columns. -->
+
+<!-- - A **sample metadata** slot containing sample co-variates, stored as a data frame. Rows from this table represent samples (rows match exactly the columns of the expression data). -->
+
+<!-- - A **feature metadata** slot containing feature co-variates, stored as data frame. The rows of this dataframe's match exactly the rows of the expression data. -->
+
+<!-- The coordinated nature of the SummarizedExperiment guarantees that during data manipulation, the dimensions of the different slots will always match (i.e the columns in the expression data and then rows in the sample metadata, as well as the rows in the expression data and feature metadata) during data manipulation. For example, if we had to exclude one sample from the assay, it would be automatically removed from the sample metadata in the same operation. -->
+
+<!-- The metadata slots can grow additional co-variates (columns) without affecting the other structures. -->
+
+<!-- **Questions**   -->
+<!-- Q1 - Can you think of data examples what can fit into this container?   -->
+<!-- Q2 - What if the data has some "specific" peculiarities on top of this tabular-like representation? -->
+
+
+<!-- ### Creating a SummarizedExperiment -->
+
+<!-- ```{r} -->
+<!-- rna <- read_csv("data/rnaseq.csv") -->
+<!-- head(rna) -->
+<!-- head(as.data.frame(rna)) -->
+<!-- ``` -->
+
+
+<!-- ```{r , echo = F, message = FALSE, eval = FALSE} -->
+<!-- rna <- read_csv("data/rnaseq.csv") -->
+<!-- counts <- rna %>% -->
+<!--   select(gene, sample, expression) %>% -->
+<!--   pivot_wider(names_from = sample, -->
+<!--               values_from = expression) -->
+<!-- count_matrix <- counts %>% select(-gene) %>% as.matrix() -->
+<!-- rownames(count_matrix) <- counts$gene -->
+<!-- sample_metadata <- rna %>% -->
+<!--   select(sample, organism, age, sex, infection, strain, time, tissue, mouse) -->
+<!-- sample_metadata <- unique(sample_metadata) -->
+<!-- gene_metadata <- rna %>% -->
+<!--   select(gene, ENTREZID, product, ensembl_gene_id, external_synonym, chromosome_name, gene_biotype, phenotype_description, hsapiens_homolog_associated_gene_name) -->
+<!-- # Remove redundancy -->
+<!-- gene_metadata <- unique(gene_metadata) -->
+
+
+<!-- saveRDS(count_matrix, "data/count_matrix.RDS") -->
+<!-- saveRDS(sample_metadata, "data/sample_metadata.RDS") -->
+<!-- saveRDS(gene_metadata, "data/gene_metadata.RDS") -->
+<!-- ``` -->
+
+
+
+<!-- Remember the `rna` dataset that we have used previously. -->
+
+<!-- From this table we have already created 3 different tables - we read them in as serialized r objects. -->
+
+<!-- ```{r} -->
+<!-- count_matrix <- readRDS("data/count_matrix.RDS") -->
+<!-- sample_metadata <- readRDS("data/sample_metadata.RDS") -->
+<!-- gene_metadata <- readRDS("data/gene_metadata.RDS") -->
+<!-- ``` -->
+
+
+<!-- - **An expression matrix** -->
+
+<!-- ```{r} -->
+<!-- count_matrix[1:5, ] -->
+<!-- dim(count_matrix) -->
+<!-- ``` -->
+
+
+<!-- - **A table describing the samples** -->
+
+<!-- ```{r} -->
+<!-- sample_metadata -->
+<!-- ``` -->
+
+<!-- - **A table describing the genes** -->
+
+<!-- ```{r} -->
+<!-- gene_metadata -->
+<!-- ``` -->
+
+<!-- We will create a `SummarizedExperiment` from these tables: -->
+
+<!-- - The count matrix that will be used as the **`assay`** -->
+
+<!-- - The table describing the samples will be used as the **sample metadata** slot -->
+
+<!-- - The table describing the genes will be used as the **features metadata** slot -->
+
+<!-- To do this we can put the different parts together using the -->
+<!-- `SummarizedExperiment` constructor: -->
+
+<!-- ```{r, message = FALSE} -->
+<!-- #BiocManager::install("SummarizedExperiment") -->
+<!-- library("SummarizedExperiment") -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- se <- SummarizedExperiment(assays = count_matrix, -->
+<!--                            colData = sample_metadata, -->
+<!--                            rowData = gene_metadata) -->
+<!-- se -->
+<!-- ``` -->
+
+<!-- ```{r, echo = FALSE} -->
+<!-- save(se, file = "data/SE.rda") -->
+<!-- ``` -->
+
+<!-- Using this data structure, we can access the expression matrix with -->
+<!-- the `assay` function: -->
+
+
+<!-- ```{r} -->
+<!-- head(assay(se)) -->
+<!-- dim(assay(se)) -->
+<!-- ``` -->
+
+<!-- We can access the sample metadata using the `colData` function: -->
+
+<!-- ```{r} -->
+<!-- colData(se) -->
+<!-- dim(colData(se)) -->
+<!-- ``` -->
+
+<!-- We can also access the feature metadata using the `rowData` function: -->
+
+<!-- ```{r} -->
+<!-- head(rowData(se)) -->
+<!-- dim(rowData(se)) -->
+<!-- ``` -->
+
+
+<!-- ### Subsetting a SummarizedExperiment -->
+
+<!-- SummarizedExperiment can be subset just like with data frames, -->
+<!-- with numerics or with characters of logicals. -->
+
+<!-- Below, we create a new instance of class SummarizedExperiment that contains only -->
+<!-- the 5 first features for the 3 first samples. -->
+
+<!-- ```{r} -->
+<!-- se1 <- se[1:5, 1:3] -->
+<!-- se1 -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- colData(se1) -->
+<!-- rowData(se1) -->
+<!-- ``` -->
+
+
+<!-- We can also use the `colData()` function to subset on something from the sample metadata, or the `rowData()` to subset on something from the feature metadata. -->
+<!-- For example, here we keep only miRNAs and the non infected samples: -->
+
+<!-- ```{r} -->
+<!-- se1 <- se[rowData(se)$gene_biotype == "miRNA", -->
+<!--           colData(se)$infection == "NonInfected"] -->
+<!-- se1 -->
+<!-- assay(se1) -->
+<!-- colData(se1) -->
+<!-- rowData(se1) -->
+<!-- ``` -->
+
+
+
+
+<!-- For the following exercise, you should download the SE.rda object -->
+<!-- (that contains the `se` object), and open the file using the -->
+<!-- 'load()' function. -->
+
+<!-- ```{r, eval = FALSE} -->
+<!-- download.file(url = "https://raw.githubusercontent.com/UCLouvain-CBIO/bioinfo-training-01-intro-r/master/data/SE.rda", -->
+<!--               destfile = "data/SE.rda") -->
+<!-- load(file = "data/SE.rda") -->
+<!-- ``` -->
+
+<!-- ## Exercise session 6 -->
+
+<!-- Extract the gene expression levels of the 3 first genes in samples at time 0 and at time 8. -->
+
+<!-- ### Exercise session 6 - Solutions -->
+
+<!-- <details> -->
+
+<!-- ```{r} -->
+<!-- assay(se)[1:3, colData(se)$time != 4] -->
+
+<!-- # Equivalent to -->
+<!-- assay(se)[1:3, colData(se)$time == 0 | colData(se)$time == 8] -->
+<!-- ``` -->
+
+<!-- <details> -->
+<!-- <summary>Click on this to display the solution</summary> -->
+
+<!-- #### Adding variables to metadata -->
+
+<!-- We can also add information to the metadata. -->
+<!-- Suppose that you want to add the center where the samples were collected... -->
+
+<!-- ```{r} -->
+<!-- colData(se)$center <- rep("University of Illinois", nrow(colData(se))) -->
+<!-- colData(se) -->
+<!-- ``` -->
+
+<!-- This illustrates that the metadata slots can grow indefinitely without affecting -->
+<!-- the other structures! -->
+
+
+
+<!-- **Take-home message** -->
+
+
+<!-- - `SummarizedExperiment` represent an efficient way to store and to handle omics data. -->
+
+<!-- - They are used in many Bioconductor packages. -->
+
+<!-- If you follow next training focused on RNA sequencing analysis, you will learn to -->
+<!-- use the Bioconductor `DESeq2` package to do some differential expression analyses. -->
+<!-- `DESeq2`'s whole analysis is handled in a `SummarizedExperiment`. -->
+
+
+<!-- # Step 6: R for statistical learning -->
+
+<!-- TODO: will depend on what will be touched upon by Irene in her lecture! -->
+
+<!-- IDEA: keep it as bonus content -->
+
+
+# Bonus Step: reproducible reports {#reproreports}
+
+Our aims: 
+
+- Understand what R Markdown is and why you should use it
+- Learn how to construct an R Markdown file
+- Export an R Markdown file into many file formats
+- $\rightarrow$ You are all set to use Rmd to document any of your analyses!
+
+## Reproducible reports with R Markdown
+
+R Markdown allows you to create documents that serve as a neat record of your analysis. 
+
+Why?
+
+- we want other researchers to easily understand what we did in our analysis, otherwise nobody can be certain that you analysed your data properly (yay, reproducible research!)
+- create an R markdown document as an appendix to a paper or project assignment, upload it to an online repository such as Github, or simply to keep as a personal record (*future you* will thank *present you* for this)
+
+The key point is...
+
+R Markdown documents present your code alongside its output (graphs, tables, etc.) with conventional text to explain it, a bit like a notebook. To do this, R Markdown uses **markdown** syntax. 
+
+
+
+## Markdown
+
+Markdown is a very simple *markup* language which provides methods for creating documents with headers, images, links etc. from plain text files, while keeping the original plain text file easy to read. 
+
+You can convert Markdown documents to many other file types like `.html` or `.pdf` to display the headers, images etc..
+
+It might sound complicated. But *really* isn't, 
+
+![](https://media.giphy.com/media/26BRNoQJ5bRcZS8Hm/giphy.gif)
+
+First things first: install the required software
+
+- R and RStudio (guess you have it already)
+
+```{r eval=FALSE}
+install.packages("rmarkdown")
+```
+
+```{r}
+library(rmarkdown)
+```
+
+- `knitr` comes along, `pandoc` too. You should quickly be all set!
+
+## Basics of markdown
+
+ABC here, let's go through it:
+
+http://rmarkdown.rstudio.com/authoring_basics.html
+
+plus... a beautiful cheat sheet is there for you!
+
+http://rmarkdown.rstudio.com/lesson-15.html
+
+http://www.rstudio.com/wp-content/uploads/2016/03/rmarkdown-cheatsheet-2.0.pdf
+
+Using LaTeX? No problem, you can use $\LaTeX$ here as well!
+
+$\left( f(x) = \sum_{i=0}^{n} \frac{a_i}{1+x} \right)$
+
+What can you do with Rmarkdown?
+
+http://rmarkdown.rstudio.com/gallery.html
+
+http://rmarkdown.rstudio.com/formats.html
+
+
+## Let's create one together!
+
+### Why is Rmd better than R
+
+![](https://i.imgflip.com/22u565.jpg)
+
+The price to pay to have an Rmd document is sooooo small - and for that, you get
+
+- code, text, output all together
+- one file only - no need to get lost
+- it even looks nice :)
+
+
+### Create an Rmarkdown file 
+
+To create a new R Markdown file (`.Rmd`), select `File -> New File -> R Markdown...` in RStudio, then choose the file type you want to create. 
+
+The newly created `.Rmd` file comes with basic instructions but we want to create our own R Markdown script, so let's get to know the different parts of an Rmd file
+
+- An (optional) YAML header surrounded by `---`s
+- R code chunks surrounded by backticks (```)
+- text mixed with simple text formatting
+
+### Inserting figures 
+
+Uh, you can insert figures also like this
+
+```
+![](images/grcat.png)
+```
+
+![](images/grcat.png)
+
+## Insert text and code - any text, any code
+
+````
+```{r}
+n <- 10
+rnorm(n)
+```
+````
+
+Shortcut: `Ctrl + Alt + I`    
+
+Input code: you can use multiple languages including R, Python, and SQL, many more (specify the language in the chunk options)
+
+
+Inline code can be added with `` `r
+1+1` ``
+
+
+### Chunk options
+
+Deatiled very nicely here: https://yihui.name/knitr/options/
+
+A simple set of options which you can use for many documents:
+
+```{r, echo=TRUE, warning=FALSE, eval=FALSE}
+set.seed(42)
+knitr::opts_chunk$set(
+  comment = NA,
+  fig.align = "center",
+  fig.width = 7,
+  fig.height = 7,
+  warning = FALSE,
+  eval = TRUE
+)
+```
+
+
+### Knit!
+
+Use the `Knit` button in the RStudio IDE to render the file and preview the output with a single click or keyboard shortcut (`Ctrl + Shift + K`).
+
+To generate a report from the file, run the `render` command (works also outside of RStudio):
+
+```{r eval=FALSE}
+library("rmarkdown")
+rmarkdown::render("yourfile.Rmd")
+```
+
+It was a deep dive, but now...
+
+- You are familiar with the Markdown syntax and code chunk rules.
+- You can include figures and tables in your Markdown reports.
+- You can create R Markdown files and export them to pdf or html files.
+
+
+## (Much) more on Rmarkdown
+
+- http://rmarkdown.rstudio.com/
+- http://stat545.com/block007_first-use-rmarkdown.html
+- http://rmarkdown.rstudio.com/lesson-1.html
+- ... to http://rmarkdown.rstudio.com/lesson-15.html
+- http://rmarkdown.rstudio.com/articles.html
+
+You can do much much more (presentations, websites, manuscripts,...)
+
+## Exercise session Bonus
+
+- create a new Rmarkdown document
+- can you find out how to generate a word document as output?
+- insert some code you previously used for exploring the small survey data - remember, a fresh session is run when knitting, so you need the commands from the very start!
+
+
+### Exercise Session Bonus - Solutions
+
+<details>
+<summary>Click on this to display the solution</summary>
+
+- `File -> New File -> R Markdown...` in RStudio
+- add this in the yaml header
+
+```
+output:
+  word_document
+```
+<!---->
+</details>
+
+
+
+
+
+# Useful material {#morematerial .unnumbered}
+
+Made @IMBEI
+
+- https://imbeimainz.github.io/GTIPI2022/ and https://github.com/imbeimainz/GTIPI2022_materials if you want to know more on the principles of data visualization
+- this very repository of course material (keep this monitored over time!)
+
+
+
+
+Books
+
+- R in a nutshell, R cookbook, R graphics cookbook (@O'Reilly media)
+- A Beginner's Guide to R (Zuur, Ieno, Meesters, @Springer)
+- R Programming for Data Science (Peng, @Leanpub)
+- R Programming for Bioinformatics (Gentleman, @CRC)
+- Bioconductor Case Studies (@Springer)
+- Data Analysis for the Life Sciences (Irizarry, Love, @Leanpub)
+- Bioconductor - An Introduction to Core Technologies (Hansen, @Leanpub)
+- R for Data Science (Wickham, Grolemund, @O'Reilly)
+
+- the whole `Use R!` book series: https://link.springer.com/bookseries/6991
+- this one from CRC: https://www.crcpress.com/Chapman--HallCRC-The-R-Series/book-series/CRCTHERSER
+- https://link.springer.com/book/10.1007/978-3-662-53670-4
+- https://link.springer.com/book/10.1007/978-3-662-49102-7
+
+
+Courses
+
+- https://www.datacamp.com/courses/free-introduction-to-r
+- https://www.coursera.org/specializations/jhu-data-science
+- https://www.edx.org/course/introduction-r-data-science-microsoft-dat204x-7
+
+Misc
+
+- http://r4stats.com/articles/why-r-is-hard-to-learn/
+- https://www.rstudio.com/resources/cheatsheets/
+- swirl - learn R in R: http://swirlstats.com/
+
+<!-- ## What we left out -->
+
+<!-- - advanced data manipulation - `dplyr` and the mighty pipe -->
+<!-- - string manipulations -->
+<!-- - ggplot2 in more detail -->
+<!-- - package development (your own package) -->
+<!-- - shiny apps development (from 0 to app) -->
+<!-- - reproducible reports (also interactive!) -->
+
+
+
+# Session Info {#sessioninfo .unnumbered}
+
+As a lesson, do take note/report the versions of R/the different packages you used for your analysis.
+
+Why? 
+
+<details>
+<summary>Click on this to display the solution</summary>
+
+* You will (should) report these in your Material & Methods
+* You credit the work of others - as a direct consequence
+* Different package versions might lead to different results
+* It is a good scientific research practice!
+* It helps others help you - in case you want to post your question on StackOverflow or similar
+* Because one command just does it for you
+
+</details>
+
+```{r}
+sessionInfo()
+```
