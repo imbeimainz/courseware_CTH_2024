@@ -293,9 +293,9 @@ Type the following
 2 + 2
 log(2)
 347 * 73841
-7/2
-7%/%2
-7%%2
+7 / 2
+7 %/% 2
+7 %% 2
 ```
 
 What did these commands do?
@@ -407,9 +407,9 @@ BONUS: ... and this
 <summary>Click on this to display the solution</summary>
 
 ```{r}
-rep(1,4)
+rep(1, 4)
 
-rep(c(1,2,3,4,5),3)
+rep(c(1, 2, 3, 4, 5), 3)
 ```
 
 </details>
@@ -504,11 +504,11 @@ Sometimes your data is either small and/or not in an Excel-like tabular format.
 What to do? You `c`ombine the elements together!
 
 ```{r eval=TRUE}
-Q1 <- c(28,27,33,32,29)
+Q1 <- c(28, 27, 33, 32, 29)
 # should return this
 Q1
 
-Q2 <- c("PhD student","PhD student", "Postdoc","PhD student","PhD student")
+Q2 <- c("PhD student", "PhD student", "Postdoc", "PhD student", "PhD student")
 Q2
 # ... and so on
 ```
@@ -522,12 +522,12 @@ We have seen `c()`. We also have
 - `rbind`
 
 ```{r, eval=TRUE}
-firstTwo <- cbind(Q1,Q2)
+firstTwo <- cbind(Q1, Q2)
 firstTwo
 ```
 
 ```{r}
-rbind(Q1,Q2)
+rbind(Q1, Q2)
 ```
 
 Is this what you wanted?
@@ -545,8 +545,8 @@ str(Q1)
 str(Q2)
 mean(Q1)
 dim(firstTwo)
-firstTwo[,1]
-mean(firstTwo[,1]) # Why, damn, why? Meet coercion
+firstTwo[, 1]
+mean(firstTwo[, 1]) # Why, damn, why? Meet coercion
 class(firstTwo)
 ```
 
@@ -561,8 +561,8 @@ What is best?
 Let's try with a `list`
 
 ```{r eval=TRUE}
-Q3 <- c("intermediate","poor","good","none","intermediate")
-mylist <- list(Q1,Q2,Q3)
+Q3 <- c("intermediate", "poor", "good", "none", "intermediate")
+mylist <- list(Q1, Q2, Q3)
 mylist
 ```
 
@@ -576,9 +576,11 @@ mylist[[1]][2]
 How do we create a `data.frame`?
 
 ```{r eval=TRUE}
-mydf <- data.frame(age = Q1,
-                   level = Q2,
-                   rexp = Q3)
+mydf <- data.frame(
+  age = Q1,
+  level = Q2,
+  rexp = Q3
+)
 mydf
 class(mydf$age)
 ```
@@ -587,8 +589,8 @@ class(mydf$age)
 ### Exploring a `data.frame`
 
 ```{r}
-mydf$age   # it's all about the money :)
-mydf[,1]
+mydf$age # it's all about the money :)
+mydf[, 1]
 names(mydf)
 rownames(mydf)
 dim(mydf)
@@ -603,7 +605,7 @@ tail(surveyrbioc)
 names(surveyrbioc)
 str(surveyrbioc)
 summary(surveyrbioc)
-surveyrbioc[ , ] 
+surveyrbioc[, ]
 ```
 
 Don't forget some nice built-in like the `View()` function, in RStudio - this is a nice alternative to "pure browsing in Excel".
@@ -633,7 +635,7 @@ max(surveyrbioc$Q1)
 my_transposed_survey <- t(surveyrbioc)
 
 surveyrbioc_mod <- surveyrbioc
-colnames(surveyrbioc_mod) <- c("age","level","rlevel","prog_level","genomics_level","parcomp_level","expectation")
+colnames(surveyrbioc_mod) <- c("age", "level", "rlevel", "prog_level", "genomics_level", "parcomp_level", "expectation")
 
 surveyrbioc_mod$expectation[which.min(surveyrbioc_mod$age)]
 ```
@@ -663,7 +665,7 @@ Describe, explore, transform, summarise data
 This is the basic way it works
 
 ```{r eval=FALSE}
-surveyrbioc[ROWS,COLUMNS]
+surveyrbioc[ROWS, COLUMNS]
 ```
 
 You can subset with...
@@ -684,7 +686,7 @@ What happens if you do this?
 ```{r}
 vec[2]
 vec[c(5, 6)]
-vec[-c(5,6)]
+vec[-c(5, 6)]
 vec > 5
 vec[vec > 5]
 ```
@@ -702,8 +704,8 @@ df <- data.frame(
 df
 
 df[c(2, 4), 3]
-df[ , 1]
-df[ , "instrument"]
+df[, 1]
+df[, "instrument"]
 df$instrument
 ```
 
@@ -711,25 +713,25 @@ Back to the survey
 
 ```{r}
 # I just want the age
-surveyrbioc[,1] 
+surveyrbioc[, 1]
 # or
 surveyrbioc$Q1
 
 # the first 4 columns
-surveyrbioc[,c(1,2,3,4)]
-surveyrbioc[,1:4]
+surveyrbioc[, c(1, 2, 3, 4)]
+surveyrbioc[, 1:4]
 
 # all but the last column
-surveyrbioc[,-7]
+surveyrbioc[, -7]
 # if you don't know we had 7 columns...
-surveyrbioc[,-ncol(surveyrbioc)]
+surveyrbioc[, -ncol(surveyrbioc)]
 
 # you can subset with logical vectors, by row and by column
-surveyrbioc[c(rep(TRUE,10),rep(FALSE,8)),]
-surveyrbioc[c(TRUE,FALSE),] # keep in mind this behavior!
+surveyrbioc[c(rep(TRUE, 10), rep(FALSE, 8)), ]
+surveyrbioc[c(TRUE, FALSE), ] # keep in mind this behavior!
 
 # guess what this does?
-surveyrbioc$Q2=="PhD student"
+surveyrbioc$Q2 == "PhD student"
 ```
 
 ## Exercise session 3
@@ -773,8 +775,8 @@ You can
 myord <- order(surveyrbioc$Q1)
 myord
 
-head(surveyrbioc[myord,1:5],4)
-sorted_surv <- surveyrbioc[myord,1:6]
+head(surveyrbioc[myord, 1:5], 4)
+sorted_surv <- surveyrbioc[myord, 1:6]
 ```
 
 `sort()` returns you the sorted data, `order()` the indices only
@@ -784,12 +786,12 @@ sorted_surv <- surveyrbioc[myord,1:6]
 
 ```{r eval=TRUE}
 # transforming a variable
-newsurvey <- surveyrbioc[,1:5]
+newsurvey <- surveyrbioc[, 1:5]
 newsurvey$ageroot <- sqrt(newsurvey$Q1)
 head(newsurvey)
 
 # creating groups out of a continuous variable
-newsurvey$agegroup <- cut(newsurvey$Q1,breaks = c(20,30,40))
+newsurvey$agegroup <- cut(newsurvey$Q1, breaks = c(20, 30, 40))
 head(newsurvey)
 ```
 
@@ -801,10 +803,10 @@ Use case for `merge`: you have *two* sets you are playing with! Think in advance
 Are PhD students *significantly* younger than postdocs? Are there any differences in the age of the three groups?
 
 ```{r}
-phds <- surveyrbioc[surveyrbioc$Q2=="PhD student",]
-postdocs <- surveyrbioc[surveyrbioc$Q2=="Postdoc",]
-t.test(phds$Q1,postdocs$Q1)
-aov(data=surveyrbioc,Q1~Q2) # What is missing here?
+phds <- surveyrbioc[surveyrbioc$Q2 == "PhD student", ]
+postdocs <- surveyrbioc[surveyrbioc$Q2 == "Postdoc", ]
+t.test(phds$Q1, postdocs$Q1)
+aov(data = surveyrbioc, Q1 ~ Q2) # What is missing here?
 ```
 
 Much more on this: in the next courses!
@@ -818,16 +820,16 @@ You want to calculate the median age of each academic group in here
 
 ```{r eval=TRUE}
 md <- median(surveyrbioc$Q1)
-md_master <- median(surveyrbioc$Q1[surveyrbioc$Q2=="Master student/else"])
-md_phd <- median(surveyrbioc$Q1[surveyrbioc$Q2=="PhD student"])
-md_postdocs <- median(surveyrbioc$Q1[surveyrbioc$Q2=="Postdoc"])
-c(md_master,md_phd,md_postdocs)
+md_master <- median(surveyrbioc$Q1[surveyrbioc$Q2 == "Master student/else"])
+md_phd <- median(surveyrbioc$Q1[surveyrbioc$Q2 == "PhD student"])
+md_postdocs <- median(surveyrbioc$Q1[surveyrbioc$Q2 == "Postdoc"])
+c(md_master, md_phd, md_postdocs)
 ```
 
 `tapply` splits the data of the first variable on the levels of the second variable, and applies the function (*any* function)
 
 ```{r eval=TRUE}
-tapply(X = surveyrbioc$Q1,INDEX = surveyrbioc$Q2,FUN = median)
+tapply(X = surveyrbioc$Q1, INDEX = surveyrbioc$Q2, FUN = median)
 ```
 
 
@@ -856,9 +858,9 @@ $\rightarrow$ Apply a Function over a List or Vector
 
 ```{r}
 # we will use just the first four columns
-lapply(iris[,1:4],mean)
-sapply(iris[,1:4],mean)
-lapply(iris[,1:4],sd)
+lapply(iris[, 1:4], mean)
+sapply(iris[, 1:4], mean)
+lapply(iris[, 1:4], sd)
 # ...
 ```
 
@@ -887,7 +889,7 @@ Alternatives in other packages:
 table(surveyrbioc$Q3)
 table(surveyrbioc$Q4)
 
-table(surveyrbioc$Q2,surveyrbioc$Q3)
+table(surveyrbioc$Q2, surveyrbioc$Q3)
 ```
 
 - want the sums? Try `addmargins()`
@@ -895,8 +897,8 @@ table(surveyrbioc$Q2,surveyrbioc$Q3)
 - somewhat nicer output: `ftable()`
 
 ```{r}
-addmargins(table(surveyrbioc$Q2,surveyrbioc$Q3))
-prop.table(table(surveyrbioc$Q2,surveyrbioc$Q3))
+addmargins(table(surveyrbioc$Q2, surveyrbioc$Q3))
+prop.table(table(surveyrbioc$Q2, surveyrbioc$Q3))
 ```
 
 
@@ -924,12 +926,12 @@ The `MASS` package contains the dataset `Cars93`, which stores the data on 93 ma
 library(MASS)
 head(Cars93)
 ?Cars93
-tapply(X = Cars93$Min.Price,INDEX = Cars93$Type,FUN = min)
-tapply(X = Cars93$Horsepower,INDEX = Cars93$Type,FUN = mean)
+tapply(X = Cars93$Min.Price, INDEX = Cars93$Type, FUN = min)
+tapply(X = Cars93$Horsepower, INDEX = Cars93$Type, FUN = mean)
 
 table(Cars93$Origin)
-us_cars <- Cars93[Cars93$Origin == "USA",]
-nonus_cars <- Cars93[Cars93$Origin != "USA",]
+us_cars <- Cars93[Cars93$Origin == "USA", ]
+nonus_cars <- Cars93[Cars93$Origin != "USA", ]
 # write.csv(us_cars, file = "us_cars.csv")
 # save(nonus_cars, file = "nonus_cars.RData")
 ```
@@ -1012,14 +1014,14 @@ Make a guess: what do you expect to see between fuel consumption and engine size
 ## Scatter plots
 
 ```{r eval=TRUE}
-plot(mpg$displ,mpg$cty)
+plot(mpg$displ, mpg$cty)
 ```
 
 Bonus: what is the `cor`relation?
 
 ```{r}
-cor(mpg$displ,mpg$cty)
-cor(mpg$displ,mpg$cty,method="spearman")
+cor(mpg$displ, mpg$cty)
+cor(mpg$displ, mpg$cty, method = "spearman")
 ```
 
 
@@ -1027,15 +1029,17 @@ cor(mpg$displ,mpg$cty,method="spearman")
 
 ```{r eval=TRUE}
 mpg$mygroup <- as.numeric(factor(mpg$class))
-plot(mpg$displ,mpg$cty,
-     col = mpg$mygroup)
-legend("topright",legend = levels(factor(mpg$class)),col=levels(factor(mpg$mygroup)),pch=1)
+plot(mpg$displ, mpg$cty,
+  col = mpg$mygroup
+)
+legend("topright", legend = levels(factor(mpg$class)), col = levels(factor(mpg$mygroup)), pch = 1)
 ```
 
 
 ```{r eval=TRUE}
-plot(mpg$displ,mpg$cty,
-     pch = as.numeric(factor((mpg$class))))
+plot(mpg$displ, mpg$cty,
+  pch = as.numeric(factor((mpg$class)))
+)
 ```
 
 This shows we have quite some overlap of points. What can we do?
@@ -1043,10 +1047,12 @@ This shows we have quite some overlap of points. What can we do?
 Adding some jitter...
 
 ```{r eval=TRUE}
-plot(x = mpg$displ + rnorm(nrow(mpg),mean = 0,sd = 0.01),
-     y = mpg$cty + rnorm(rnorm(nrow(mpg),mean = 0,sd = 0.01)),
-     col = mpg$mygroup,
-     main = "now with jitter!")
+plot(
+  x = mpg$displ + rnorm(nrow(mpg), mean = 0, sd = 0.01),
+  y = mpg$cty + rnorm(rnorm(nrow(mpg), mean = 0, sd = 0.01)),
+  col = mpg$mygroup,
+  main = "now with jitter!"
+)
 ```
 
 
@@ -1057,22 +1063,22 @@ Trying to see a pattern? Add a smoothing curve.
 This one is wrong - missing the reordering of points
 
 ```{r eval=TRUE}
-plot(mpg$displ,mpg$cty, col = mpg$mygroup)
-myloess <- loess(cty~displ, data=mpg)
+plot(mpg$displ, mpg$cty, col = mpg$mygroup)
+myloess <- loess(cty ~ displ, data = mpg)
 myfit <- fitted(myloess)
-lines(mpg$displ,myfit)
-legend("topright",legend = levels(factor(mpg$class)),col=levels(factor(mpg$mygroup)),pch=1)
+lines(mpg$displ, myfit)
+legend("topright", legend = levels(factor(mpg$class)), col = levels(factor(mpg$mygroup)), pch = 1)
 ```
 
 This one is correct!
 
 ```{r eval=TRUE}
-plot(mpg$displ,mpg$cty, col = mpg$mygroup)
-myloess <- loess(cty~displ, data=mpg)
+plot(mpg$displ, mpg$cty, col = mpg$mygroup)
+myloess <- loess(cty ~ displ, data = mpg)
 myfit <- fitted(myloess)
 myord <- order(mpg$displ)
-lines(mpg$displ[myord],myfit[myord])
-legend("topright",legend = levels(factor(mpg$class)),col=levels(factor(mpg$mygroup)),pch=1)
+lines(mpg$displ[myord], myfit[myord])
+legend("topright", legend = levels(factor(mpg$class)), col = levels(factor(mpg$mygroup)), pch = 1)
 ```
 
 `lines` can add (almost) anything (any line). 
@@ -1100,31 +1106,34 @@ How is the age distributed across academic levels? Check the help of `boxplot`
 - Don't worry, it's nothing but your `y~x` variables - ok, it can get more complicated
     
 ```{r eval=TRUE}
-boxplot(Q1~Q2,
-        data = surveyrbioc)
+boxplot(Q1 ~ Q2,
+  data = surveyrbioc
+)
 ```
 
 Splitting on more factors
 
 ```{r eval = TRUE}
-boxplot(Q1~Q2+Q3,
-        data = surveyrbioc)
+boxplot(Q1 ~ Q2 + Q3,
+  data = surveyrbioc
+)
 ```
 
 Making it more readable...
 
 ```{r eval = TRUE}
-boxplot(Q1~Q2+Q3,
-        data = surveyrbioc,
-        las = 2)
+boxplot(Q1 ~ Q2 + Q3,
+  data = surveyrbioc,
+  las = 2
+)
 ```
 
 Changing the `par`ameters allows you to control many aspects on plot appearance
 `par` is your best friend - and enemy (see `?par`)
 
 ```{r eval=TRUE}
-par(mar=c(15,3,2,2))
-boxplot(Q1~Q2+Q3,data = surveyrbioc,las = 2)
+par(mar = c(15, 3, 2, 2))
+boxplot(Q1 ~ Q2 + Q3, data = surveyrbioc, las = 2)
 ```
 
 `par( ... )` has many arguments; here, the useful/most used ones
@@ -1138,17 +1147,17 @@ boxplot(Q1~Q2+Q3,data = surveyrbioc,las = 2)
 ## Histograms
 
 ```{r eval=TRUE}
-hist(surveyrbioc$Q1,breaks = 8)
+hist(surveyrbioc$Q1, breaks = 8)
 ```
 
 
 ## More histograms!
 
 ```{r}
-hist(mpg$cty,breaks = 10)
-hist(mpg$cty,breaks = 10, col = "steelblue")
-hist(mpg$cty,breaks = 10, col = "steelblue", border = "gray")
-hist(mpg$cty,breaks = 10, col = "steelblue", border = "gray",main = "Distribution of miles/gallon consumption in city traffic")
+hist(mpg$cty, breaks = 10)
+hist(mpg$cty, breaks = 10, col = "steelblue")
+hist(mpg$cty, breaks = 10, col = "steelblue", border = "gray")
+hist(mpg$cty, breaks = 10, col = "steelblue", border = "gray", main = "Distribution of miles/gallon consumption in city traffic")
 ```
 
 
@@ -1164,10 +1173,12 @@ example(pie) # expecially the last one
 ```
 
 ```{r}
-pie(c(20, 80), init.angle=-40,
-    col=c("white", "yellow"), 
-    label=c("no pacman", "pacman"),
-    border = "lightgrey")
+pie(c(20, 80),
+  init.angle = -40,
+  col = c("white", "yellow"),
+  label = c("no pacman", "pacman"),
+  border = "lightgrey"
+)
 ```
 
 ... or switch from pie to waffle (seriously)
@@ -1185,19 +1196,20 @@ pie(c(20, 80), init.angle=-40,
 a.k.a. Why is this bad?
 
 ```{r eval=TRUE}
-age_by_group <- tapply(surveyrbioc$Q1,surveyrbioc$Q2,mean)
-sd_by_group <- tapply(surveyrbioc$Q1,surveyrbioc$Q2,sd)
-mybar <- barplot(age_by_group,col=c("khaki","salmon","firebrick"), ylim=c(0,max(age_by_group) + 5))
+age_by_group <- tapply(surveyrbioc$Q1, surveyrbioc$Q2, mean)
+sd_by_group <- tapply(surveyrbioc$Q1, surveyrbioc$Q2, sd)
+mybar <- barplot(age_by_group, col = c("khaki", "salmon", "firebrick"), ylim = c(0, max(age_by_group) + 5))
 # mybar, inspect it
-arrows(mybar, age_by_group,mybar, (age_by_group + sd_by_group), length = 0.15,angle= 90)
+arrows(mybar, age_by_group, mybar, (age_by_group + sd_by_group), length = 0.15, angle = 90)
 ```
 
 
 Dynamite plots VS boxplots
 
 ```{r eval=TRUE}
-boxplot(Q1~Q2,
-        data = surveyrbioc)
+boxplot(Q1 ~ Q2,
+  data = surveyrbioc
+)
 ```
 
 Median VS distribution VS actual points... What do you really want to show?
@@ -1231,8 +1243,9 @@ pdf("myfilename.pdf")
 # see also alternatives:
 ## png()
 ## jpeg()
-plot(mpg$displ,mpg$cty,
-     col = mpg$mygroup)
+plot(mpg$displ, mpg$cty,
+  col = mpg$mygroup
+)
 dev.off()
 ```
 
@@ -1260,18 +1273,18 @@ Back to the `iris`. Three species are there. Explore the dataset in the followin
 
 ```{r}
 hist(iris$Petal.Length)
-plot(iris$Sepal.Length,iris$Petal.Length)
-plot(iris$Sepal.Length,iris$Petal.Length,col=iris$Species)
-plot(iris$Sepal.Width,iris$Sepal.Length, pch = as.numeric(factor(iris$Species)))
-legend("topright",legend = levels(factor(iris$Species)),pch=unique(factor(iris$Species)))
+plot(iris$Sepal.Length, iris$Petal.Length)
+plot(iris$Sepal.Length, iris$Petal.Length, col = iris$Species)
+plot(iris$Sepal.Width, iris$Sepal.Length, pch = as.numeric(factor(iris$Species)))
+legend("topright", legend = levels(factor(iris$Species)), pch = unique(factor(iris$Species)))
 
-sl_means <- tapply(iris$Sepal.Length,iris$Species,mean)
-pl_means <- tapply(iris$Petal.Length,iris$Species,mean)
-sw_means <- tapply(iris$Sepal.Width,iris$Species,mean)
-pw_means <- tapply(iris$Petal.Width,iris$Species,mean)
-mymat <- cbind(sl_means,pl_means,sw_means,pw_means)
-barplot(mymat,legend.text = unique(iris$Species))
-barplot(mymat,beside = TRUE,legend.text = unique(iris$Species))
+sl_means <- tapply(iris$Sepal.Length, iris$Species, mean)
+pl_means <- tapply(iris$Petal.Length, iris$Species, mean)
+sw_means <- tapply(iris$Sepal.Width, iris$Species, mean)
+pw_means <- tapply(iris$Petal.Width, iris$Species, mean)
+mymat <- cbind(sl_means, pl_means, sw_means, pw_means)
+barplot(mymat, legend.text = unique(iris$Species))
+barplot(mymat, beside = TRUE, legend.text = unique(iris$Species))
 ```
 
 </details>
@@ -1279,7 +1292,7 @@ barplot(mymat,beside = TRUE,legend.text = unique(iris$Species))
 ## Something cool to have an overview...
 
 ```{r eval=TRUE}
-pairs(iris[,1:4],col=iris$Species)
+pairs(iris[, 1:4], col = iris$Species)
 ```
 
 You can use the panels even more cleverly, check the help of `pairs`!
@@ -1344,17 +1357,18 @@ yet, it makes the whole process of "thinking data" more natural.
 
 
 ```{r eval = TRUE}
-ggplot(gapminder,aes(x = gdpPercap, y = lifeExp))
+ggplot(gapminder, aes(x = gdpPercap, y = lifeExp))
 ```
 
 ```{r eval=TRUE}
-ggplot(gapminder,aes(x = gdpPercap, y = lifeExp)) + geom_point()
+ggplot(gapminder, aes(x = gdpPercap, y = lifeExp)) +
+  geom_point()
 ```
 
 We can store `ggplot` plot objects into a variable - and build upon that later 
 
 ```{r eval=TRUE}
-p <- ggplot(gapminder,aes(x = gdpPercap, y = lifeExp)) 
+p <- ggplot(gapminder, aes(x = gdpPercap, y = lifeExp))
 p + geom_point()
 ```
 
@@ -1364,55 +1378,55 @@ p <- p + scale_x_log10()
 ```
 
 ```{r eval=TRUE}
-p + geom_point(color="blue")
+p + geom_point(color = "blue")
 ```
 
 ```{r eval=TRUE}
-p + geom_point(color="steelblue", pch=19, size=8, alpha=1/4)
+p + geom_point(color = "steelblue", pch = 19, size = 8, alpha = 1 / 4)
 ```
 
 ```{r eval=TRUE}
-p + geom_point(aes(color=continent))
+p + geom_point(aes(color = continent))
 ```
 
 ```{r eval=TRUE}
-p + geom_point(aes(col=continent), size=4)
+p + geom_point(aes(col = continent), size = 4)
 ```
 
 ```{r eval=TRUE}
-p + geom_point(aes(col=continent, size=pop)) 
+p + geom_point(aes(col = continent, size = pop))
 ```
 
 ```{r eval=TRUE}
-p + geom_point(aes(col=continent, size=pop)) + geom_smooth()
+p + geom_point(aes(col = continent, size = pop)) + geom_smooth()
 ```
 
 ```{r eval=TRUE}
-niceone <- p + geom_point(aes(col=continent, size=pop)) + 
-  geom_smooth(aes(col=continent),se=FALSE)
+niceone <- p + geom_point(aes(col = continent, size = pop)) +
+  geom_smooth(aes(col = continent), se = FALSE)
 niceone
 ```
 
 ```{r eval=TRUE}
-p + geom_point(aes(col=continent, size=pop)) + 
-  geom_smooth(lwd=2, se=FALSE, method="lm", col="red")
+p + geom_point(aes(col = continent, size = pop)) +
+  geom_smooth(lwd = 2, se = FALSE, method = "lm", col = "red")
 ```
 
 ```{r eval=TRUE}
-p + geom_point(aes(col=continent, size=pop)) + 
-  geom_smooth(aes(col=continent),lwd=2, se=FALSE, method="lm")
+p + geom_point(aes(col = continent, size = pop)) +
+  geom_smooth(aes(col = continent), lwd = 2, se = FALSE, method = "lm")
 ```
 
 ```{r eval=TRUE}
-p + geom_point() + facet_wrap(~continent) 
+p + geom_point() + facet_wrap(~continent)
 ```
 
 ```{r eval=TRUE}
-p + geom_point(aes(col=continent)) + facet_wrap(~continent) 
+p + geom_point(aes(col = continent)) + facet_wrap(~continent)
 ```
 
 ```{r eval=TRUE}
-p + geom_point(aes(col=continent)) + geom_smooth() + facet_wrap(~continent)
+p + geom_point(aes(col = continent)) + geom_smooth() + facet_wrap(~continent)
 ```
 
 ### Saving the plots
@@ -1420,26 +1434,31 @@ p + geom_point(aes(col=continent)) + geom_smooth() + facet_wrap(~continent)
 Becomes de facto easier - works on "plot objects".
 
 ```{r eval=FALSE}
-ggsave(file="myplot.png")
+ggsave(file = "myplot.png")
 ```
 
 ### Line plots
 
 ```{r eval=TRUE}
-ggplot(gapminder,
-       aes(x = year, y = lifeExp, group = country, color = country)
-       ) +
+ggplot(
+  gapminder,
+  aes(x = year, y = lifeExp, group = country, color = country)
+) +
   geom_line(lwd = 1, show.legend = FALSE) +
   scale_color_manual(values = country_colors) +
-  theme_bw() + theme(strip.text = element_text(size = rel(1.1)))
+  theme_bw() +
+  theme(strip.text = element_text(size = rel(1.1)))
 ```
 
 ```{r eval=TRUE}
-bp <- ggplot(gapminder,
-       aes(x = year, y = lifeExp, group = country, color = country)
-       ) +
-  geom_line(lwd = 1, show.legend = FALSE) + facet_wrap(~ continent) +
-  scale_color_manual(values = country_colors) + theme(strip.text = element_text(size = rel(1.1)))
+bp <- ggplot(
+  gapminder,
+  aes(x = year, y = lifeExp, group = country, color = country)
+) +
+  geom_line(lwd = 1, show.legend = FALSE) +
+  facet_wrap(~continent) +
+  scale_color_manual(values = country_colors) +
+  theme(strip.text = element_text(size = rel(1.1)))
 bp
 ```
 
@@ -1455,7 +1474,7 @@ plotly::ggplotly(bp)
 
 ```{r eval=TRUE}
 # now it is a categorical x VS continuous y
-p <- ggplot(gapminder, aes(x = continent, y = lifeExp)) 
+p <- ggplot(gapminder, aes(x = continent, y = lifeExp))
 ```
 
 ```{r eval=TRUE}
@@ -1463,7 +1482,7 @@ p + geom_point()
 ```
 
 ```{r eval=TRUE}
-p + geom_point(alpha=1/4)
+p + geom_point(alpha = 1 / 4)
 ```
 
 It is so easy to escape *dynamite* plots!
@@ -1473,7 +1492,7 @@ p + geom_jitter()
 ```
 
 ```{r eval=TRUE}
-p + geom_jitter(aes(col=continent))
+p + geom_jitter(aes(col = continent))
 ```
 
 ```{r eval=TRUE}
@@ -1481,7 +1500,7 @@ p + geom_boxplot()
 ```
 
 ```{r eval=TRUE}
-p + geom_boxplot() + geom_jitter(alpha=1/2)
+p + geom_boxplot() + geom_jitter(alpha = 1 / 2)
 ```
 
 ### Histograms
@@ -1492,33 +1511,33 @@ p + geom_histogram()
 ```
 
 ```{r eval=TRUE}
-p + geom_histogram(binwidth=1)
+p + geom_histogram(binwidth = 1)
 ```
 
 Stacked histogram are much easier in this framework
 
 ```{r eval=TRUE}
-p + geom_histogram(aes(color=continent))
+p + geom_histogram(aes(color = continent))
 ```
 
 ```{r eval=TRUE}
-p + geom_histogram(aes(fill=continent))
+p + geom_histogram(aes(fill = continent))
 ```
 
 ```{r eval=TRUE}
-p + geom_histogram(aes(fill=continent), position="identity")
+p + geom_histogram(aes(fill = continent), position = "identity")
 ```
 
 ... and so is the superimposing of more than one distribution
 
 ```{r eval=TRUE}
-p + geom_histogram(aes(fill=continent), position="identity", alpha = 0.4)
+p + geom_histogram(aes(fill = continent), position = "identity", alpha = 0.4)
 ```
 
 Similar to histogram, you can use also density plots
 
 ```{r eval=TRUE}
-p + geom_density(aes(fill=continent), alpha=1/4)
+p + geom_density(aes(fill = continent), alpha = 1 / 4)
 ```
 
 ### Themes: a quick way to put a new shirt on
