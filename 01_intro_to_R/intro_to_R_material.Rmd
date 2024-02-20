@@ -11,7 +11,8 @@ subtitle: >
   </p>
   <br>
 author:
-- name: Annekathrin Ludt (anneludt@uni-mainz.de)<br><a href="https://www.unimedizin-mainz.de/imbei/">IMBEI, University Medical Center Mainz</a><br>
+- name: Najla Abassi (abassina@uni-mainz.de)<br><a href="https://www.unimedizin-mainz.de/imbei/">IMBEI, University Medical Center Mainz</a><br>
+- name: Annekathrin Nedwed (anneludt@uni-mainz.de)<br><a href="https://www.unimedizin-mainz.de/imbei/">IMBEI, University Medical Center Mainz</a><br>
 - name: <a href="https://federicomarini.github.io">Federico Marini (marinif@uni-mainz.de)</a><br><a href="https://www.unimedizin-mainz.de/imbei/">IMBEI, University Medical Center Mainz</a><br><a href="https://twitter.com/FedeBioinfo">`r icons::fontawesome('twitter')` `@FedeBioinfo`</a>
 date: "2024/02/21"
 output: 
