@@ -59,7 +59,9 @@ The content will follow closely the slides used during the course itself, with p
 13:30-15:30 --- Step 3, 4, Q&As  
 
 
-# Step 0: R and RStudio, know your tools {#step0 .unnumbered}
+# Step 0: You, R and RStudio, knowing you and knowing your tools {#step0 .unnumbered}
+
+Let's get to know each other a bit...
 
 ## What is R? Why should I use R? 
 
