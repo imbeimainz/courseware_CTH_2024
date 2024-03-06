@@ -1,5 +1,8 @@
 ---
 title: "Lab - Statistical Testing"
+authur: 
+  - Chung Shing Rex Ha
+  - Christina Abele
 output: learnr::tutorial
 runtime: shiny_prerendered
 ---
