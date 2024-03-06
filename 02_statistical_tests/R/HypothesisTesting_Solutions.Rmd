@@ -1,0 +1,626 @@
+---
+title: "Lab - Statistical Testing - Solutions"
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+knitr::opts_chunk$set(echo = FALSE)
+
+load("04_Nonparametric.RData")
+```
+
+## Parametric test with continuous variable
+
+### Background
+
+Our research team is developing a new therapy to enhance the sleep quality of patients with chronic neck pain. A randomized clinical trial was conducted and we recruited two groups of 50 patients for the standard $T_1$ and new $T_2$ therapies. To quantify the sleep quality, we measured the average sleeping time of 2 weeks before and after the therapies start.
+
+```{r simulation1, include=FALSE}
+set.seed(12345)
+
+sleep_quality <- data.frame(
+    id=1:100,
+    Therapy=rep(c("T1", "T2"), each=50),
+    Sex=sample(c("Male", "Female"), 100, replace=TRUE),
+    Age=round(c(rnorm(50, 60, 10), rnorm(50, 70, 5))),
+    SleepTime1=round(rnorm(100, 4, 1), 1),
+    SleepTime2=round(c(rnorm(50, 6, 2), rnorm(50, 7, 2)), 1)
+)
+```
+
+### Exercise with Code
+
+#### Data overview
+
+Write a R code to have a brief overview of the data `sleep_quality`
+
+```{r ex1-overview-data, exercise=TRUE, exercise.lines=5}
+head(sleep_quality)
+```
+
+::: {#ex1-overview-data-hint}
+**Hint:** You may want to use `head` function.
+:::
+
+#### Visualizing the data
+
+Write a R code to visualize and compare the average sleeping time before and after the new therapy $T_2$
+
+```{r ex1-vis-data1, exercise=TRUE, exercise.lines=5}
+sleep_quality_T2 <- subset(sleep_quality, sleep_quality$Therapy=="T2")
+
+boxplot(sleep_quality_T2[, c("SleepTime1", "SleepTime2")])
+```
+
+::: {#ex2-vis-data1-hint}
+**Hint:**
+
+1.  You may want to use `subset` function to extract the patients with $T_2$.
+
+2.  Then use `boxplot` function or `ggplot2::ggplot` & `ggplot2::geom_boxplot` function.
+:::
+
+Write a R code to visualize and compare the differences of average sleeping time of two therapy groups
+
+```{r ex1-vis-data2, exercise=TRUE, exercise.lines=5}
+boxplot(SleepTime2 - SleepTime1 ~ Therapy, 
+        data=sleep_quality,
+        ylab="Changes of the sleep time")
+```
+
+::: {#ex2-vis-data2-hint}
+**Hint:** You may want to use `boxplot` function or `ggplot2::ggplot` & `ggplot2::geom_boxplot` function.
+:::
+
+#### Research question 1
+
+Does the patients' sleep quality change after receiving the new therapy $T_2$?
+
+```{r ex1-question1, echo=FALSE}
+question("Which hypothesis test is appropriate in this case?",
+  answer("Unpaired t-test"),
+  answer("Paired t-test", correct = TRUE),
+  incorrect = "Incorrect. Here we are comparing the results within the same patients")
+```
+
+Write a R code to perform the hypothesis test
+
+```{r ex1-hypothesis-test1, exercise=TRUE, exercise.lines=5}
+t.test(sleep_quality_T2$SleepTime2, sleep_quality_T2$SleepTime1, alternative="two.sided", paired=TRUE)
+```
+
+::: {#ex1-hypothesis-test1-hint}
+**Hint:** You may want to use `t.test(..., alternative="two.sided", paired=TRUE)`.
+:::
+
+**Question: What conclusion can we draw from the result?**
+
+#### Research question 2
+
+Are there any differences in terms of sleep quality changes between two therapies?
+
+```{r ex1-question2, echo=FALSE}
+question("Which hypothesis test is appropriate in this case?",
+  answer("Unpaired t-test", correct = TRUE),
+  answer("Paired t-test"),
+  incorrect = "Incorrect. Here we are comparing the results of two independent groups")
+```
+
+Write a R code to perform the hypothesis test
+
+```{r ex1-hypothesis-test2, exercise=TRUE, exercise.lines=5}
+t.test(SleepTime2 - SleepTime1 ~ Therapy, 
+       data=sleep_quality, 
+       alternative="two.sided", 
+       paired=FALSE)
+```
+
+::: {#ex1-hypothesis-test2-hint}
+**Hint:** You may want to use `t.test(..., alternative="two.sided", paired=FALSE)`.
+:::
+
+**Question: What conclusion can we draw from the result in condition of 5% significant level?**
+
+## Statistical tests for binary and categorical data
+
+### Background
+
+In addition to the previous research questions, we would like to investigate the association between age and sleep quality. We divided the patients into two age groups: `below 60` and `above 60`, and two sleep quality group (before therapy): `poor` (\< 5 hours) and `good` (\>= 5 hours). We created a new data set `sleep_quality2`.
+
+```{r simulation2, include=FALSE}
+
+sleep_quality2 <- sleep_quality
+sleep_quality2$AgeGroup <- cut(sleep_quality2$Age, 
+                               breaks=c(0, 60, 100), 
+                               labels=c("below 60", "above 60"))
+sleep_quality2$SleepQuality <- cut(sleep_quality2$SleepTime1, 
+                                 breaks=c(0, 5, 10), 
+                                 labels=c("poor", "good"))
+```
+
+### Exercise with Code
+
+#### Data overview
+
+Write a R code to have a brief overview of the data `sleep_quality2`
+
+```{r ex2-overview-data, exercise=TRUE, exercise.lines=5}
+head(sleep_quality2)
+```
+
+<div>
+
+**Hint:** You may want to use `head` function.
+
+</div>
+
+#### Contingency table
+
+Write a R code to create a contingency table for age groups and sleep quality
+
+```{r ex2-vis-data1, exercise=TRUE, exercise.lines=5}
+table(sleep_quality2$SleepQuality, sleep_quality2$AgeGroup)
+# Alternative: ftable(AgeGroup ~ SleepQuality, data=sleep_quality2)
+```
+
+<div>
+
+**Hint:** You may want to use `table` function
+
+</div>
+
+#### Research question 1
+
+Does the patients' sleep quality change after receiving the new therapy $T_2$?
+
+```{r ex2-question1, echo=FALSE}
+question("Which hypothesis test is appropriate in this case?",
+  answer("Fisher's exact test", correct = TRUE),
+  answer("McNemar test"),
+  answer("Chi-Square test")
+  )
+```
+
+Write a R code to perform the hypothesis test
+
+```{r ex2-hypothesis-test1, exercise=TRUE, exercise.lines=5}
+fisher.test(sleep_quality2$SleepQuality, sleep_quality2$AgeGroup, alternative="two.sided")
+```
+
+::: {#ex2-hypothesis-test1-hint}
+**Hint:** You may want to use `fisher.test(..., alternative="two.sided")`.
+:::
+
+**Question: What conclusion can we draw from the result in condition of 5% significance level?**
+
+#### Research question 2
+
+Now we would like to redefine the sleep quality of `SleepTime1`: `bad` (< 3.5 hours), `moderate` (3.5 - 5.5 hours) and `good` (>= 5.5 hours)
+
+Write a R code to add a column into `sleep_quality2` for the new definition of sleep quality and name it as `SleepQuality_new`
+
+```{r ex2-edit-data, exercise=TRUE, exercise.lines=5}
+sleep_quality2$SleepQuality_new <- cut(sleep_quality2$SleepTime1, 
+                                       breaks=c(0, 3.5, 5.5, Inf), 
+                                       labels=c("poor", "moderate", "good"))
+```
+
+<div>
+
+**Hint:** You may want to use `cut(sleep_quality2$SleepTime1, ...)` function
+
+</div>
+
+Write a R code to create a contingency table for age groups and sleep quality with the new definition
+
+```{r ex2-vis-data2, exercise=TRUE, exercise.lines=5}
+table(sleep_quality2$SleepQuality_new, sleep_quality2$AgeGroup)
+# Alternative: ftable(AgeGroup ~ SleepQuality_new, data=sleep_quality2)
+```
+
+<div>
+
+**Hint:** You may want to use `table` function
+
+</div>
+
+```{r ex2-question2, echo=FALSE}
+question("Which hypothesis test is appropriate in this case?",
+  answer("Fisher's exact test"),
+  answer("McNemar test"),
+  answer("Chi-Square test", correct = TRUE),
+  incorrect = "Incorrect. Here we are testing a 2x3 contingency table")
+```
+
+Write a R code to perform the hypothesis test
+
+```{r ex2-hypothesis-test2, exercise=TRUE, exercise.lines=5}
+chisq.test(sleep_quality2$SleepQuality_new, sleep_quality2$AgeGroup)
+# Alternative (using Monte Carlo method): 
+# chisq.test(sleep_quality2$SleepQuality_new, sleep_quality2$AgeGroup, 
+#            simulate.p.value=TRUE, 
+#            B=1e5)
+```
+
+::: {#ex2-hypothesis-test2-hint}
+**Hint:** You may want to use `chisq.test(..., alternative="two.sided")`.
+:::
+
+**Question: What conclusion can we draw from the result?**
+
+## Nonparametric tests
+
+Load the packages `tidyverse`, `exactRankTests` and `pseudorank` 
+<!-- and the data sets contained in Nonparametric.RData into your R environment. -->
+
+```{r ex3-setup}
+# # Load data
+# load("04_Nonparametric.RData")
+```
+
+```{r ex3-package, exercise=TRUE, exercise.lines=5, message=FALSE}
+
+# Load required R packages
+library(tidyverse)
+library(exactRankTests)
+library(pseudorank)
+```
+
+### Two independent samples
+
+Write a R code to summarize the numbers of observations per treatment and outcome level in the data set `ds.2is`.
+
+```{r ex3-two-ind-samples-1, exercise=TRUE, exercise.lines=5}
+# Summarize counts per category for plotting
+ds.2is.plot <- expand.grid(outcome = 1:5, treatment = c("Placebo", "Verum")) %>%
+  left_join(ds.2is %>% group_by(treatment, outcome) %>% summarize(observations = n(), .groups = "drop"), by = c("treatment", "outcome")) %>%
+  left_join(ds.2is %>% group_by(treatment) %>% summarize(total = n()), by = "treatment") %>%
+  replace_na(list(observations = 0)) %>% 
+  mutate(perc.frequency = 100 * observations / total)
+
+print(ds.2is.plot)
+```
+
+```{r ex3-two-ind-samples-1-solution}
+# Summarize counts per category for plotting
+ds.2is.plot <- expand.grid(outcome = 1:5, treatment = c("Placebo", "Verum")) %>%
+  left_join(ds.2is %>% group_by(treatment, outcome) %>% summarize(observations = n(), .groups = "drop"), by = c("treatment", "outcome")) %>%
+  left_join(ds.2is %>% group_by(treatment) %>% summarize(total = n()), by = "treatment") %>%
+  replace_na(list(observations = 0)) %>% 
+  mutate(perc.frequency = 100 * observations / total)
+
+print(ds.2is.plot)
+```
+
+
+Write a R code to visualize the numbers of observations per treatment and outcome level in a diagram
+
+```{r ex3-two-ind-samples-2, exercise=TRUE, exercise.lines=5}
+# Generate plot
+# Simple base R version:
+barplot(perc.frequency ~ treatment + outcome, data = ds.2is.plot, beside = TRUE)
+
+# Nicer ggplot version:
+ggplot(data = ds.2is.plot, aes(fill=treatment, y=perc.frequency, x=outcome)) + 
+  geom_bar(position="dodge", stat="identity") +
+  scale_x_discrete(limits = 1:5, labels = c("Very bad", "Rather bad", "Mediocre", "Rather good", "Very good")) + 
+  scale_fill_manual(values = c(rgb(0/256,60/256,118/256), "grey50")) +
+  labs(x = "Quality of life",
+       y = "Frequency in percent",
+       fill = "Treatment:") +
+  theme_bw() 
+```
+
+```{r ex3-two-ind-samples-2-solution}
+# Generate plot
+# Simple base R version:
+barplot(perc.frequency ~ treatment + outcome, data = ds.2is.plot, beside = TRUE)
+
+# Nicer ggplot version:
+ggplot(data = ds.2is.plot, aes(fill=treatment, y=perc.frequency, x=outcome)) + 
+  geom_bar(position="dodge", stat="identity") +
+  scale_x_discrete(limits = 1:5, labels = c("Very bad", "Rather bad", "Mediocre", "Rather good", "Very good")) + 
+  scale_fill_manual(values = c(rgb(0/256,60/256,118/256), "grey50")) +
+  labs(x = "Quality of life",
+       y = "Frequency in percent",
+       fill = "Treatment:") +
+  theme_bw() 
+```
+
+
+Write a R code to perform a Welch t-test of experimental vs. standard treatment on a two-sided significance level of 5%.
+
+```{r ex3-two-ind-samples-3, exercise=TRUE, exercise.lines=5}
+# t-test
+t.test(outcome ~ treatment, data = ds.2is, alternative = "two.sided")
+```
+
+```{r ex3-two-ind-samples-3-solution}
+# t-test
+t.test(outcome ~ treatment, data = ds.2is, alternative = "two.sided")
+```
+
+**Question: Which treatment is better? Is the difference significant?**
+
+Write a R code to perform a WMW test of experimental vs. standard treatment on a two-sided significance level of 5%. You may use the `wilcox.exact` command from the `exactRankTests` package. 
+
+```{r ex3-two-ind-samples-4, exercise=TRUE, exercise.lines=5}
+# WMW test
+wilcox.exact(outcome ~ treatment, data = ds.2is, alternative = "two.sided", exact = TRUE)
+wilcox.exact(outcome ~ treatment, data = ds.2is, alternative = "two.sided", exact = FALSE)
+```
+
+```{r ex3-two-ind-samples-4-solution}
+# WMW test
+wilcox.exact(outcome ~ treatment, data = ds.2is, alternative = "two.sided", exact = TRUE)
+wilcox.exact(outcome ~ treatment, data = ds.2is, alternative = "two.sided", exact = FALSE)
+```
+
+**Question: Choose the version – exact or asymptotic – which is appropriate for your data?** 
+
+**Question: Which treatment is better? Is the difference significant?**
+
+
+### More than two independent samples
+
+Write a R code to summarize the numbers of observations per treatment and outcome level in the data set `ds.m2is`.
+
+```{r ex3-more-than-two-ind-samples-1, exercise=TRUE, exercise.lines=5}
+# Summarize counts per category for plotting
+ds.m2is.plot <- expand.grid(outcome = 1:5, dose = c("D0/Placebo", "D1", "D2", "D3")) %>%
+  left_join(ds.m2is %>% group_by(dose, outcome) %>% summarize(observations = n(),.groups = "drop"), by = c("dose", "outcome")) %>%
+  left_join(ds.m2is %>% group_by(dose) %>% summarize(total = n()), by = "dose") %>%
+  replace_na(list(observations = 0)) %>% 
+  mutate(perc.frequency = 100 * observations / total)
+
+print(ds.m2is.plot)
+```
+
+```{r ex3-more-than-two-ind-samples-1-solution}
+# Summarize counts per category for plotting
+ds.m2is.plot <- expand.grid(outcome = 1:5, dose = c("D0/Placebo", "D1", "D2", "D3")) %>%
+  left_join(ds.m2is %>% group_by(dose, outcome) %>% summarize(observations = n(),.groups = "drop"), by = c("dose", "outcome")) %>%
+  left_join(ds.m2is %>% group_by(dose) %>% summarize(total = n()), by = "dose") %>%
+  replace_na(list(observations = 0)) %>% 
+  mutate(perc.frequency = 100 * observations / total)
+
+print(ds.m2is.plot)
+```
+
+
+Write a R code to visualize the numbers of observations per treatment and outcome level in a diagram.
+
+```{r ex3-more-than-two-ind-samples-2, exercise=TRUE, exercise.lines=5}
+# Generate plot
+# Simple base R version:
+barplot(perc.frequency ~ dose + outcome, data = ds.m2is.plot, beside = TRUE)
+
+# Nicer ggplot version:
+ggplot(data = ds.m2is.plot, aes(fill=dose, y=perc.frequency, x=outcome)) + 
+  geom_bar(position="dodge", stat="identity") +
+  scale_y_continuous(breaks = seq(0,100,10), minor_breaks = NULL) +
+  scale_fill_manual(values = c("grey50", "orangered3", rgb(0/256,60/256,118/256), rgb(193/256,0/256,43/256))) +
+  labs(x = "Quality of life",
+       y = "Frequency in percent",
+       fill = "Dose:") +
+  theme_bw() 
+```
+
+```{r ex3-more-than-two-ind-samples-2-solution}
+# Generate plot
+# Simple base R version:
+barplot(perc.frequency ~ dose + outcome, data = ds.m2is.plot, beside = TRUE)
+
+# Nicer ggplot version:
+ggplot(data = ds.m2is.plot, aes(fill=dose, y=perc.frequency, x=outcome)) + 
+  geom_bar(position="dodge", stat="identity") +
+  scale_y_continuous(breaks = seq(0,100,10), minor_breaks = NULL) +
+  scale_fill_manual(values = c("grey50", "orangered3", rgb(0/256,60/256,118/256), rgb(193/256,0/256,43/256))) +
+  labs(x = "Quality of life",
+       y = "Frequency in percent",
+       fill = "Dose:") +
+  theme_bw() 
+```
+
+
+**Question: If you are going to perform a Kruskal-Wallis test, what is your null hypothesis?**
+
+
+Write a R code to perform a Kruskal-Wallis test of the three treatments on a two-sided significance level of 5%. You can use the `kruskal_wallis_test` command from the `pseudorank` package. 
+
+```{r ex3-more-than-two-ind-samples-3, exercise=TRUE, exercise.lines=5}
+# Kruskal-Wallis test
+# Test performed on ranks, not on pseudoranks
+# In case of equal sample sizes, you can set pseudoranks = FALSE
+kruskal_wallis_test(outcome ~ dose, data = ds.m2is, pseudoranks = TRUE)   # correct
+kruskal_wallis_test(outcome ~ dose, data = ds.m2is, pseudoranks = FALSE)  # not correct
+```
+
+```{r ex3-more-than-two-ind-samples-3-solution}
+# Kruskal-Wallis test
+# Test performed on ranks, not on pseudoranks
+# In case of equal sample sizes, you can set pseudoranks = FALSE
+kruskal_wallis_test(outcome ~ dose, data = ds.m2is, pseudoranks = TRUE)   # correct
+kruskal_wallis_test(outcome ~ dose, data = ds.m2is, pseudoranks = FALSE)  # not correct
+```
+
+**Question: Do you need pseudoranks, or can you use ranks? What is your result? Is it significant?**
+
+**Question: How does the result change if you use the other ranking option?**
+
+**Quesiton: As a researcher, would you be satisfied if this was your final result? What could you add?**
+
+
+### Paired samples
+
+Write a R code to add a column containing doubled ranks of the outcomes to the data set `ds.ps`.
+
+```{r ex3-paired-samples-1, exercise=TRUE, exercise.lines=5}
+# Add ranks and doubled ranks to the data and sort
+ds.ps <- ds.ps %>%
+  mutate(rank = rank(mmse, ties.method = "average"),
+         # rankx2 used to create integer "double ranks" -> changes test statistic, but not p-value
+         rankx2 = 2 * rank) %>% 
+  arrange(patient, time)
+
+print(ds.ps)
+```
+
+```{r ex3-paired-samples-1-solution}
+# Add ranks and doubled ranks to the data and sort
+ds.ps <- ds.ps %>%
+  mutate(rank = rank(mmse, ties.method = "average"),
+         # rankx2 used to create integer "double ranks" -> changes test statistic, but not p-value
+         rankx2 = 2 * rank) %>% 
+  arrange(patient, time)
+
+print(ds.ps)
+```
+
+
+Write a R code to generate a table showing the number of observations for each combination of baseline and follow-up outcome level.
+
+```{r ex3-paired-samples-2, exercise=TRUE, exercise.lines=5}
+# Frequency table, FU in rows
+addmargins(xtabs(~ FollowUp + Baseline, data = ds.ps %>% pivot_wider(id_cols = "patient", names_from = "time", values_from = "mmse")))
+```
+
+```{r ex3-paired-samples-2-solution}
+# Frequency table, FU in rows
+addmargins(xtabs(~ FollowUp + Baseline, data = ds.ps %>% pivot_wider(id_cols = "patient", names_from = "time", values_from = "mmse")))
+```
+
+
+Write a R code to visualize the numbers of observations per combination in a diagram.
+
+```{r ex3-paired-samples-3, exercise=TRUE, exercise.lines=5}
+# Summarize counts per category combination for plotting
+ds.ps.plot <- ds.ps %>% 
+  pivot_wider(id_cols = "patient", names_from = "time", values_from = "mmse") %>%
+  group_by(Baseline, FollowUp) %>% 
+  summarize(n.obs = n(),.groups = "drop") 
+
+# Generate plot
+# Simple base R jittered scatter plot:
+plot(jitter(FollowUp, 0.5) ~ jitter(Baseline, 0.5), data = ds.ps %>% pivot_wider(id_cols = "patient", names_from = "time", values_from = "mmse") )
+
+# Nicer ggplot bubble plot:
+ggplot(data = ds.ps.plot, aes(x = Baseline, y = FollowUp)) + 
+  geom_abline(intercept = 0, slope = 1, color = "grey") + 
+  geom_point(aes(size = n.obs), color = rgb(0/256,60/256,118/256), shape = 16) +
+  scale_x_continuous(limits = c(min(ds.ps$mmse), max(ds.ps$mmse)), breaks = min(ds.ps$mmse):max(ds.ps$mmse), minor_breaks = NULL, expand = c(0,0.5)) + 
+  scale_y_continuous(limits = c(min(ds.ps$mmse), max(ds.ps$mmse)), breaks = min(ds.ps$mmse):max(ds.ps$mmse), minor_breaks = NULL, expand = c(0,0.5)) + 
+  scale_size(range = 5*c(min(ds.ps.plot$n.obs), max(ds.ps.plot$n.obs)), breaks = min(ds.ps.plot$n.obs):max(ds.ps.plot$n.obs), name="Number of Patients:")+  
+  labs(x = "MMSE score at baseline",
+       y = "MMSE score at follow-up") +
+  theme_bw() +
+  theme(text = element_text(size = 20))
+```
+
+```{r ex3-paired-samples-3-solution}
+# Summarize counts per category combination for plotting
+ds.ps.plot <- ds.ps %>% 
+  pivot_wider(id_cols = "patient", names_from = "time", values_from = "mmse") %>%
+  group_by(Baseline, FollowUp) %>% 
+  summarize(n.obs = n(),.groups = "drop") 
+
+# Generate plot
+# Simple base R jittered scatter plot:
+plot(jitter(FollowUp, 0.5) ~ jitter(Baseline, 0.5), data = ds.ps %>% pivot_wider(id_cols = "patient", names_from = "time", values_from = "mmse") )
+
+# Nicer ggplot bubble plot:
+ggplot(data = ds.ps.plot, aes(x = Baseline, y = FollowUp)) + 
+  geom_abline(intercept = 0, slope = 1, color = "grey") + 
+  geom_point(aes(size = n.obs), color = rgb(0/256,60/256,118/256), shape = 16) +
+  scale_x_continuous(limits = c(min(ds.ps$mmse), max(ds.ps$mmse)), breaks = min(ds.ps$mmse):max(ds.ps$mmse), minor_breaks = NULL, expand = c(0,0.5)) + 
+  scale_y_continuous(limits = c(min(ds.ps$mmse), max(ds.ps$mmse)), breaks = min(ds.ps$mmse):max(ds.ps$mmse), minor_breaks = NULL, expand = c(0,0.5)) + 
+  scale_size(range = 5*c(min(ds.ps.plot$n.obs), max(ds.ps.plot$n.obs)), breaks = min(ds.ps.plot$n.obs):max(ds.ps.plot$n.obs), name="Number of Patients:")+  
+  labs(x = "MMSE score at baseline",
+       y = "MMSE score at follow-up") +
+  theme_bw() +
+  theme(text = element_text(size = 20))
+```
+
+
+Write a R code to perform an exact paired ranks test of follow-up vs. baseline values on a two-sided significance level of 5%. You can use the `perm.test` command from the `exactRankTests` package with doubled ranks as the dependent variable. 
+
+```{r ex3-paired-samples-4, exercise=TRUE, exercise.lines=5}
+# Exact permutation test for paired ranks
+perm.test(rankx2 ~ time, data = ds.ps, paired = TRUE, alternative = "two.sided", exact=TRUE)
+```
+
+```{r ex3-paired-samples-4-solution}
+# Exact permutation test for paired ranks
+perm.test(rankx2 ~ time, data = ds.ps, paired = TRUE, alternative = "two.sided", exact=TRUE)
+```
+
+**Question: Is the difference significant?**
+
+
+**Question: How does the result change if you treat your data as independent?**
+
+```{r ex3-paired-samples-5, exercise=TRUE, exercise.lines=5}
+# Incorrect exact permutation test for ranks in independent samples
+perm.test(rankx2 ~ time, data = ds.ps, paired = FALSE, alternative = "two.sided", exact=TRUE)
+wilcox.exact(mmse ~ time, data = ds.ps, alternative = "two.sided", exact = TRUE)
+```
+
+```{r ex3-paired-samples-5-solution}
+# Incorrect exact permutation test for ranks in independent samples
+perm.test(rankx2 ~ time, data = ds.ps, paired = FALSE, alternative = "two.sided", exact=TRUE)
+wilcox.exact(mmse ~ time, data = ds.ps, alternative = "two.sided", exact = TRUE)
+```
+
+**Question: Compare with an asymptotic paired ranks test by using a paired Welch t-test on the ranks (or, equivalently, doubled ranks).**
+
+```{r ex3-paired-samples-6, exercise=TRUE, exercise.lines=5}
+# Paired samples t-test on ranks = asymptotic paired ranks test
+t.test(rank ~ time, data = ds.ps, paired = TRUE, alternative = "two.sided")
+```
+
+```{r ex3-paired-samples-6-solution}
+# Paired samples t-test on ranks = asymptotic paired ranks test
+t.test(rank ~ time, data = ds.ps, paired = TRUE, alternative = "two.sided")
+```
+
+
+
+
+## Multiple testing
+
+Recall the example from the previous section **More than two independent samples**. Let’s assume you want to find out whether any of your newly developed medications works better than placebo and if so, which one is best. Develop a testing strategy appropriate for answering this research question.
+
+Write a R code to perform Kruskal-Wallis test to find out if there is any group difference on data set `ds.m2is`
+
+```{r ex4-multiple-testing-1, exercise=TRUE, exercise.lines=5}
+# First stage: Kruskal-Wallis test to find out if there is any group difference
+kruskal_wallis_test(outcome ~ dose, data = ds.m2is, pseudoranks = TRUE)
+```
+
+```{r ex4-multiple-testing-1-solution}
+# First stage: Kruskal-Wallis test to find out if there is any group difference
+kruskal_wallis_test(outcome ~ dose, data = ds.m2is, pseudoranks = TRUE)
+```
+
+**Yes, there is a difference. Thus, we can proceed:**
+
+
+Write a R code to perform WMW tests of new treatments vs. placebo with Bonferroni correction
+
+```{r ex4-multiple-testing-2, exercise=TRUE, exercise.lines=5}
+# Second stage: WMW tests of new treatments vs. placebo with Bonferroni correction
+wilcox.exact(outcome ~ dose, data = ds.m2is %>% filter(dose %in% c("D0/Placebo", "D1")), alpha = 0.05/3, alternative = "two.sided", exact = FALSE)
+wilcox.exact(outcome ~ dose, data = ds.m2is %>% filter(dose %in% c("D0/Placebo", "D2")), alpha = 0.05/3, alternative = "two.sided", exact = FALSE)
+wilcox.exact(outcome ~ dose, data = ds.m2is %>% filter(dose %in% c("D0/Placebo", "D3")), alpha = 0.05/3, alternative = "two.sided", exact = FALSE)
+```
+
+```{r ex4-multiple-testing-2-solution}
+# Second stage: WMW tests of new treatments vs. placebo with Bonferroni correction
+wilcox.exact(outcome ~ dose, data = ds.m2is %>% filter(dose %in% c("D0/Placebo", "D1")), alpha = 0.05/3, alternative = "two.sided", exact = FALSE)
+wilcox.exact(outcome ~ dose, data = ds.m2is %>% filter(dose %in% c("D0/Placebo", "D2")), alpha = 0.05/3, alternative = "two.sided", exact = FALSE)
+wilcox.exact(outcome ~ dose, data = ds.m2is %>% filter(dose %in% c("D0/Placebo", "D3")), alpha = 0.05/3, alternative = "two.sided", exact = FALSE)
+```
+
+**Doses D2 and D3 are superior to placebo, but not dose D1. **
