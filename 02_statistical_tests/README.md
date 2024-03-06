@@ -1,5 +1,7 @@
 # Introduction to statistical Tests 
 
+All the slides can be found in [`Slides`]. 
+
 Contents: 
 
 1. Introduction to hypothesis testing 
