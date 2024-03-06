@@ -67,7 +67,7 @@ Write a R code to visualize and compare the average sleeping time before and aft
 
 ```
 
-::: {#ex2-vis-data1-hint}
+::: {#ex1-vis-data1-hint}
 **Hint:**
 
 1.  You may want to use `subset` function to extract the patients with $T_2$.
@@ -81,7 +81,7 @@ Write a R code to visualize and compare the differences of average sleeping time
 
 ```
 
-::: {#ex2-vis-data2-hint}
+::: {#ex1-vis-data2-hint}
 **Hint:** You may want to use `boxplot` function or `ggplot2::ggplot` & `ggplot2::geom_boxplot` function.
 :::
 
