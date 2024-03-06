@@ -103,6 +103,7 @@ question("Which hypothesis test is appropriate in this case?",
 Write a R code to perform the hypothesis test
 
 ```{r ex1-hypothesis-test1, exercise=TRUE, exercise.lines=5, exercise.setup="ex1-vis-data1"}
+sleep_quality_T2 <- subset(sleep_quality, sleep_quality$Therapy=="T2")
 t.test(sleep_quality_T2$SleepTime2, sleep_quality_T2$SleepTime1, alternative="two.sided", paired=TRUE)
 ```
 

@@ -24,6 +24,8 @@ sleep_quality <- data.frame(
     SleepTime2=round(c(rnorm(50, 6, 2), rnorm(50, 7, 2)), 1)
 )
 
+# subset the sleep_quality data with the new therapy only
+sleep_quality_T2 <- subset(sleep_quality, sleep_quality$Therapy=="T2")
 
 # generate the data needed for statistical tests for binary and categorical data
 sleep_quality2 <- sleep_quality
@@ -43,7 +45,6 @@ load("04_Nonparametric.RData")
 ### Background
 
 Our research team is developing a new therapy to enhance the sleep quality of patients with chronic neck pain. A randomized clinical trial was conducted and we recruited two groups of 50 patients for the standard $T_1$ and new $T_2$ therapies. To quantify the sleep quality, we measured the average sleeping time of 2 weeks before and after the therapies start.
-
 
 ### Exercise with Code
 
@@ -137,7 +138,6 @@ Write a R code to perform the hypothesis test
 
 In addition to the previous research questions, we would like to investigate the association between age and sleep quality. We divided the patients into two age groups: `below 60` and `above 60`, and two sleep quality group (before therapy): `poor` (\< 5 hours) and `good` (\>= 5 hours). We created a new data set `sleep_quality2`.
 
-
 ### Exercise with Code
 
 #### Data overview
@@ -148,11 +148,9 @@ Write a R code to have a brief overview of the data `sleep_quality2`
 
 ```
 
-<div>
-
+::: {#ex2-overview-data-hint}
 **Hint:** You may want to use `head` function.
-
-</div>
+:::
 
 #### Contingency table
 
@@ -162,18 +160,16 @@ Write a R code to create a contingency table for age groups and sleep quality
 
 ```
 
-<div>
-
+::: {#ex2-vis-data1-hint}
 **Hint:** You may want to use `table` function
-
-</div>
+:::
 
 #### Research question 1
 
-Does the patients' sleep quality change after receiving the new therapy $T_2$?
+is the sleep quality associated with age groups?
 
 ```{r ex2-question1, echo=FALSE}
-question("Which hypothesis test is appropriate in this case?",
+question("Which hypothesis test is the most appropriate test in this case?",
   answer("Fisher's exact test", correct = TRUE),
   answer("McNemar test"),
   answer("Chi-Square test")
@@ -194,7 +190,7 @@ Write a R code to perform the hypothesis test
 
 #### Research question 2
 
-Now we would like to redefine the sleep quality of `SleepTime1`: `bad` (< 3.5 hours), `moderate` (3.5 - 5.5 hours) and `good` (>= 5.5 hours)
+Now we would like to redefine the sleep quality of `SleepTime1`: `bad` (\< 3.5 hours), `moderate` (3.5 - 5.5 hours) and `good` (\>= 5.5 hours)
 
 Write a R code to add a column into `sleep_quality2` for the new definition of sleep quality and name it as `SleepQuality_new`
 
@@ -242,8 +238,7 @@ Write a R code to perform the hypothesis test
 
 ## Nonparametric tests
 
-Load the packages `tidyverse`, `exactRankTests` and `pseudorank` 
-<!-- and the data sets contained in Nonparametric.RData into your R environment. -->
+Load the packages `tidyverse`, `exactRankTests` and `pseudorank`
 
 ```{r ex3-package, exercise=TRUE, exercise.lines=5, message=FALSE}
 
@@ -255,7 +250,11 @@ library(pseudorank)
 
 ### Two independent samples
 
-Write a R code to summarize the numbers of observations per treatment and outcome level in the data set `ds.2is`.
+Write a R code to
+
+-   summarize the numbers of observations per treatment and outcome level in the data set `ds.2is`
+
+-   visualize the numbers of observations per treatment and outcome level in a diagram
 
 ```{r ex3-two-ind-samples-1, exercise=TRUE, exercise.lines=5}
 
@@ -269,17 +268,8 @@ ds.2is.plot <- expand.grid(outcome = 1:5, treatment = c("Placebo", "Verum")) %>%
   replace_na(list(observations = 0)) %>% 
   mutate(perc.frequency = 100 * observations / total)
 
-print(ds.2is.plot)
-```
+head(ds.2is.plot)
 
-
-Write a R code to visualize the numbers of observations per treatment and outcome level in a diagram
-
-```{r ex3-two-ind-samples-2, exercise=TRUE, exercise.lines=5, exercise.setup="ex3-two-ind-samples-1"}
-
-```
-
-```{r ex3-two-ind-samples-2-solution}
 # Generate plot
 # Simple base R version:
 barplot(perc.frequency ~ treatment + outcome, data = ds.2is.plot, beside = TRUE)
@@ -295,7 +285,6 @@ ggplot(data = ds.2is.plot, aes(fill=treatment, y=perc.frequency, x=outcome)) +
   theme_bw() 
 ```
 
-
 Write a R code to perform a Welch t-test of experimental vs. standard treatment on a two-sided significance level of 5%.
 
 ```{r ex3-two-ind-samples-3, exercise=TRUE, exercise.lines=5, exercise.setup="ex3-two-ind-samples-1"}
@@ -310,7 +299,7 @@ t.test(outcome ~ treatment, data = ds.2is, alternative = "two.sided")
 
 **Question: Which treatment is better? Is the difference significant?**
 
-Write a R code to perform a WMW test of experimental vs. standard treatment on a two-sided significance level of 5%. You may use the `wilcox.exact` command from the `exactRankTests` package. 
+Write a R code to perform a WMW test of experimental vs. standard treatment on a two-sided significance level of 5%. You may use the `wilcox.exact` command from the `exactRankTests` package.
 
 ```{r ex3-two-ind-samples-4, exercise=TRUE, exercise.lines=5, exercise.setup="ex3-two-ind-samples-1"}
 
@@ -322,14 +311,17 @@ wilcox.exact(outcome ~ treatment, data = ds.2is, alternative = "two.sided", exac
 wilcox.exact(outcome ~ treatment, data = ds.2is, alternative = "two.sided", exact = FALSE)
 ```
 
-**Question: Choose the version – exact or asymptotic – which is appropriate for your data?** 
+**Question: Choose the version – exact or asymptotic – which is appropriate for your data?**
 
 **Question: Which treatment is better? Is the difference significant?**
 
-
 ### More than two independent samples
 
-Write a R code to summarize the numbers of observations per treatment and outcome level in the data set `ds.m2is`.
+Write a R code to
+
+-   summarize the numbers of observations per treatment and outcome level in the data set `ds.m2is` and
+
+-   visualize the numbers of observations per treatment and outcome level in a diagram.
 
 ```{r ex3-more-than-two-ind-samples-1, exercise=TRUE, exercise.lines=5}
 
@@ -343,17 +335,8 @@ ds.m2is.plot <- expand.grid(outcome = 1:5, dose = c("D0/Placebo", "D1", "D2", "D
   replace_na(list(observations = 0)) %>% 
   mutate(perc.frequency = 100 * observations / total)
 
-print(ds.m2is.plot)
-```
+head(ds.m2is.plot)
 
-
-Write a R code to visualize the numbers of observations per treatment and outcome level in a diagram.
-
-```{r ex3-more-than-two-ind-samples-2, exercise=TRUE, exercise.lines=5, exercise.setup="ex3-more-than-two-ind-samples-1"}
-
-```
-
-```{r ex3-more-than-two-ind-samples-2-solution}
 # Generate plot
 # Simple base R version:
 barplot(perc.frequency ~ dose + outcome, data = ds.m2is.plot, beside = TRUE)
@@ -369,11 +352,9 @@ ggplot(data = ds.m2is.plot, aes(fill=dose, y=perc.frequency, x=outcome)) +
   theme_bw() 
 ```
 
-
 **Question: If you are going to perform a Kruskal-Wallis test, what is your null hypothesis?**
 
-
-Write a R code to perform a Kruskal-Wallis test of the three treatments on a two-sided significance level of 5%. You can use the `kruskal_wallis_test` command from the `pseudorank` package. 
+Write a R code to perform a Kruskal-Wallis test of the three treatments on a two-sided significance level of 5%. You can use the `kruskal_wallis_test` command from the `pseudorank` package.
 
 ```{r ex3-more-than-two-ind-samples-3, exercise=TRUE, exercise.lines=5, exercise.setup="ex3-more-than-two-ind-samples-1"}
 
@@ -393,7 +374,6 @@ kruskal_wallis_test(outcome ~ dose, data = ds.m2is, pseudoranks = FALSE)  # not 
 
 **Quesiton: As a researcher, would you be satisfied if this was your final result? What could you add?**
 
-
 ### Paired samples
 
 Write a R code to add a column containing doubled ranks of the outcomes to the data set `ds.ps`.
@@ -410,9 +390,8 @@ ds.ps <- ds.ps %>%
          rankx2 = 2 * rank) %>% 
   arrange(patient, time)
 
-print(ds.ps)
+head(ds.ps)
 ```
-
 
 Write a R code to generate a table showing the number of observations for each combination of baseline and follow-up outcome level.
 
@@ -424,7 +403,6 @@ Write a R code to generate a table showing the number of observations for each c
 # Frequency table, FU in rows
 addmargins(xtabs(~ FollowUp + Baseline, data = ds.ps %>% pivot_wider(id_cols = "patient", names_from = "time", values_from = "mmse")))
 ```
-
 
 Write a R code to visualize the numbers of observations per combination in a diagram.
 
@@ -456,8 +434,7 @@ ggplot(data = ds.ps.plot, aes(x = Baseline, y = FollowUp)) +
   theme(text = element_text(size = 20))
 ```
 
-
-Write a R code to perform an exact paired ranks test of follow-up vs. baseline values on a two-sided significance level of 5%. You can use the `perm.test` command from the `exactRankTests` package with doubled ranks as the dependent variable. 
+Write a R code to perform an exact paired ranks test of follow-up vs. baseline values on a two-sided significance level of 5%. You can use the `perm.test` command from the `exactRankTests` package with doubled ranks as the dependent variable.
 
 ```{r ex3-paired-samples-4, exercise=TRUE, exercise.lines=5, exercise.setup="ex3-paired-samples-1"}
 
@@ -469,7 +446,6 @@ perm.test(rankx2 ~ time, data = ds.ps, paired = TRUE, alternative = "two.sided",
 ```
 
 **Question: Is the difference significant?**
-
 
 **Question: How does the result change if you treat your data as independent?**
 
@@ -494,14 +470,11 @@ wilcox.exact(mmse ~ time, data = ds.ps, alternative = "two.sided", exact = TRUE)
 t.test(rank ~ time, data = ds.ps, paired = TRUE, alternative = "two.sided")
 ```
 
-
-
-
 ## Multiple testing
 
 Recall the example from the previous section **More than two independent samples**. Let’s assume you want to find out whether any of your newly developed medications works better than placebo and if so, which one is best. Develop a testing strategy appropriate for answering this research question.
 
-Load the packages `tidyverse`, `exactRankTests` and `pseudorank` 
+Load the packages `tidyverse`, `exactRankTests` and `pseudorank`
 
 ```{r ex4-package, exercise=TRUE, exercise.lines=5, message=FALSE}
 
@@ -524,7 +497,6 @@ kruskal_wallis_test(outcome ~ dose, data = ds.m2is, pseudoranks = TRUE)
 
 **Yes, there is a difference. Thus, we can proceed:**
 
-
 Write a R code to perform WMW tests of new treatments vs. placebo with Bonferroni correction
 
 ```{r ex4-multiple-testing-2, exercise=TRUE, exercise.lines=5, exercise.setup="ex3-more-than-two-ind-samples-1"}
@@ -538,4 +510,4 @@ wilcox.exact(outcome ~ dose, data = ds.m2is %>% filter(dose %in% c("D0/Placebo",
 wilcox.exact(outcome ~ dose, data = ds.m2is %>% filter(dose %in% c("D0/Placebo", "D3")), alpha = 0.05/3, alternative = "two.sided", exact = FALSE)
 ```
 
-**Doses D2 and D3 are superior to placebo, but not dose D1. **
+**Doses D2 and D3 are superior to placebo, but not dose D1.**
