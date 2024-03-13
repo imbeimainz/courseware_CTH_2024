@@ -1,0 +1,901 @@
+---
+title: >
+  ANOVA - Examples with R
+subtitle: >
+  CTH Course Series on Statistics
+  <p align="center">
+   IMBEI @ <img src="images/combilogo.png" alt="" height="70"/>
+  <img src="images/ticardio-logo.png" alt="" height="50"/>
+  </a>
+  </p>
+  <a href="https://www.unimedizin-mainz.de/imbei/">
+  <br><a href="https://www.unimedizin-mainz.de/imbei/">
+author: >
+  Irene Schmidtmann (ischmidt@uni-mainz.de))<br>
+  based on work by Manuel Herbst<br><a href="https://www.unimedizin-mainz.de/imbei/">IMBEI, University Medical Center Mainz</a><br>
+date: >
+  2024/03/13
+
+output:
+
+   bookdown::html_document2:
+    toc: true
+    toc_float: true
+    theme: cosmo
+    code_folding: show
+    code_download: true
+    
+   editor_options:
+    chunk_output_type: inline
+---
+
+```{r setup, echo=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(
+  eval = TRUE,
+  include = TRUE,
+  echo = TRUE,
+  error = FALSE,
+  message = FALSE,
+  warnings = FALSE,
+  highlight = TRUE,
+  fig.align = "center"
+)
+```
+
+```{css, echo = FALSE}
+
+.infobox{
+  padding: 1em 1em 1em 4em;
+  margin-bottom: 10px;
+  border: 2px solid orange;
+  border-radius: 10px;
+  background: #f5f5f5 5px center/3em no-repeat;
+}
+
+.orangebox{
+  padding: 1em 1em 1em 4em;
+  background: LightSalmon 5px center/3em no-repeat;
+  border-radius: 10px;
+}
+
+.greenbox{
+  padding: 1em 1em 1em 4em;
+  background: LightGreen 5px center/2.5em no-repeat;
+  border-radius: 10px;
+}
+
+.center {
+  text-align: center;
+}
+
+.go {
+  background-image: url("images/go_icon.png");
+}
+
+.stop {
+  background-image: url("images/stop_icon.png");
+}
+
+
+
+```
+
+
+We discuss the following issues regarding ordinary **one- and two-way ANOVAs**:
+
+* Checking important model assumptions
+
+* Formal computation with R and interpretation of the output
+
+* Post-hoc pairwise comparisons (Tukey's Honest Significance Difference and Dunnett' s Test)
+
+
+# Getting Started
+
+First, open the R-project
+<br>
+
+<img src="images/R_project.png" alt="" height="20"/>
+
+by double-clicking. This opens R-studio and automatically chooses the right working directory.
+</br>
+Otherwise, you need to manually set the path to the current directory:
+
+```{r, eval = FALSE}
+
+# Check your current working directory
+getwd() 
+
+# Change if necessary
+setwd('your path')
+```
+
+
+Second, open the R-file named `Load_Required_Packages.R` and run the code. This loads the following packages:
+
+```{r}
+
+library(car)
+library(DescTools)
+library(emmeans)
+library(emmeans)
+library(faraway)
+library(ggpubr)
+library(mosaic)
+library(pwr2)
+library(rstatix)
+library(tidyverse)
+
+```
+
+This step requires to have installed all these packages before!
+
+# The pipe-operator `%>%`
+
+By default, if you want to apply several functions to a vector or a data frame one after another, functions have to be nested:
+
+```{r}
+
+set.seed(123345)
+x <- rnorm(100)
+sqrt(abs(log(abs(mean(x)))))
+
+```
+
+If you want to know what’s happening here, you have to read **from inside to outside**. This is unintuitive because that’s not our usual direction of reading.
+
+</br>
+
+The pipe-operator `%>%` (called the pipe) solves this problem by combining
+functions such that source code can be read the way we are used to: **from left to right**
+
+```{r}
+
+x %>% mean %>% abs %>% log %>% abs %>% sqrt
+
+```
+
+
+# One-way ANOVA
+
+A **one-way ANOVA** generalizes the two-sample $t$-test to an $F$-test comparing means of more than two samples/groups.
+</br>
+A one-way ANOVA model has three components:
+
+* **Subjects** := Observational units of the experiment (e.g. participants, animals, tissue samples; IMPORTANT: One row per subject!!)
+
+* **Factor** := Categorical independent variable that divides the subjects into different groups (e.g. treatment groups, experimental conditions, NOT: time points!!) 
+
+* **Response** := Metric dependent variable (e.g. the response to a treatment, drug, intervention)
+
+</br>
+Example: 
+</br>
+The Coagulation data set comes from a study of blood coagulation times. 24 animals were randomly assigned to four different diets and the samples were taken in a random order.
+
+The data set contains the following variables:
+
+* **Subject_ID**: ID number specifying each animal
+* **Diet**: diet type - A,B,C or D
+* **Response**: coagulation time in seconds.
+
+
+## Import Coagulation data
+
+```{r}
+## Import the data
+data <- read_csv("data/Coagulation_example.csv")
+
+## Save a copy of the original data, if necessary
+# data.orig <- data
+
+
+```
+
+</br>
+
+Check whether the import was successful and, in particular, the type of variables:
+```{r}
+
+ 
+## Print first 10 observations
+data %>% print(n = 10)
+
+
+```
+
+The variable `Diet` is a character. We recommend using factors:
+
+```{r}
+
+## Convert Diet into factor
+data <- data %>% 
+  rstatix::convert_as_factor(Diet) %>%
+  rstatix::set_ref_level(Diet, "A")
+
+data %>% print(n = 10)
+```
+
+
+## Describe, understand and clean the data
+
+Summarize and visualize how the response variable is distributed in each group!
+
+Also check for the following issues:
+
+* Response is metric/numeric
+
+* Correct spelling of group levels
+
+* Implausible outliers in response
+
+* Missing values
+
+* Sample size issues: Imbalanced data/ Underrepresented groups
+
+* Only one observation per subject
+
+</br>
+
+Note that:
+
+* Extreme outliers and a large amount of missing values may severely effect your ANOVA results! In this tutorial we confine ourselves with the detection, not the treatment, of such.
+
+</br>
+
+Compute important summary statistics:
+
+```{r}
+## Important summary statistics
+
+mosaic::favstats(Response ~ Diet, data = data)
+
+```
+
+</br>
+
+::: {.greenbox .go}
+
+* There are is only one missing value.
+
+* There is no category with no observation.
+
+* There are no implausible outliers (such as a negative coagulation time)
+
+* Means are close to medians.
+
+::: 
+
+Note:
+
+* Even though sample size is small and the data set is imbalanced, we can compute a one-way ANOVA. But we shoul carefulls check model assumptions
+
+* Real-world data sets are prone to errors! Take time for plausibility checks! 
+
+</br>
+
+We remove the row with missing response to avoid warning messages later on:
+
+```{r}
+## Removse observations with missing entries
+
+data <- data %>% na.omit()
+
+## Check again
+mosaic::favstats(Response ~ Diet, data = data)
+
+```
+
+
+</br>
+
+Visualize your data:
+```{r}
+
+## Boxplots
+
+data %>% ggpubr::ggboxplot(x = "Diet", y = "Response", title = "Impact of diet on coagulation time")
+
+```
+
+
+
+
+## Check model assumptions
+
+Critical situations, where the results of a one-way ANOVA might be invalid:
+
+::: {.orangebox}
+
+
+* **Measurements are not independent** (e.g. repeated measurements, clustered data): If you are unsure about this, ask a colleague, (bio-) statistician! Take into account methods or software allowing the user to explicitly specify correlation structures (e.g. linear mixed effect models).
+
+* **Small sample sizes and non-normal distributions**: A nonparametric version of one-way ANOVA is provided by the **Kruskal-Wallis-Test** `rstatix::kruskal_test()`. You can also try a transformation of the continuous response variable (e.g. a log-transformation).
+
+* **Imbalanced data (i.e. different group sample sizes) and in-homogeneous variances**: The **Welch-Test ANOVA** `rstatix::welch_anova_test()`` tests whether two or more samples from normal distributions have the same means without requiring homogeneous variances. 
+
+:::
+
+</br>
+
+Possible ways to check normality and homogeneity of variances:
+
+* Visualization: Plot histograms, boxplots, QQ-plots for each group
+
+* Compute and diagnose the residuals of the corresponding linear regression model, i.e. calling `lm(Response ~ Factor, data = data)` and, afterwards, `plot()`.
+
+* Perform tests like the **Shapiro-Wilk test** ($H_0$: response is normally distributed) or **Levene's test** ($H_0$: variances are equal). A small $p$-value indicates a strong violation of the respective assumption. BUT: **Never base your conclusions solely on these tests!** 
+
+* Think about data from other similar experiments!
+
+</br>
+
+Situations where the independence of measurements does no longer hold:
+
+* Repeated measurements: Several measurements belong to the same animal.
+
+* Clustered data: Animals belong to the same litter (and you assume that their coagulation times are therefore positively correlated)
+
+</br>
+
+Further, note that:
+
+* In some experimental contexts, finding different variances may be as important as finding different means. If the variances are different, then the populations are different -- regardless of what ANOVA concludes about differences between the means.
+
+
+</br>
+
+
+Evaluate `lm()`-model:
+
+</br>
+
+::: {.infobox}
+
+* **Residual vs Fitted** is used to check the linearity of the relationship between the response and independent variables. This is less important if there is only a single factor.
+
+* **Normal-QQ** is used to check whether the residuals are normally distributed, i.e whether the response is normally distributed in each group.
+
+* **Scale-Location** is used to check the homogeneity of the residuals' variance
+
+* **Residuals vs Leverage** is used to check the impact of outliers
+
+:::
+
+</br>
+
+```{r}
+# Evaluate linear model
+
+lm.fit <- lm(Response ~ Diet, data = data)
+plot(lm.fit)
+
+```
+
+
+
+```{r}
+
+# Levene-test and Shapiro-Wilk-test
+
+list(
+  Shapiro_Wilk = data %>% group_by(Diet) %>% rstatix::shapiro_test(Response),
+  Levene = data %>% rstatix::levene_test(Response ~ Diet)
+)
+
+
+```
+
+</br>
+
+::: {.greenbox .go}
+
+* No strong violation of normality assumption
+
+* No severe impact of outliers
+
+
+:::
+
+</br> 
+
+::: {.orangebox .stop}
+
+* Homogeneity of variance: There is a trend in the Scale-Location plot, while the Levene-test has a non-significant result (but this might be due to low sample size, i.e. low power)
+
+</br>
+**Suggestion:**
+</br>
+Compare results of ordinary ANOVA to the result of the Welch-ANOVA.
+
+:::
+
+## Compute one-way ANOVA
+
+There are several ways to compute a one-way ANOVA with R:
+
+* with the command `rstatix::anova_test()`` 
+
+* with the command `stats::aov()` (not discussed here)
+
+* with the command `stats::lm()` and in combination with `stats::anova()`
+
+</br>
+
+Null hypothesis:
+
+$$
+H_0 : \mu_i = \mu \ \text{ for all groups }i
+$$
+In words: All group means $\mu_i$ are the same (and, consequently, are equal to the overall mean $\mu$ of all observations). 
+
+We reject $H_0$ at a **significance level** of $5\%$, i.e. if $p < 0.05$ holds for the $p$-value. In this case, we say that the observed differences in the group means are statistically significant.
+
+</br>
+
+Formal syntax:
+```{r, eval = FALSE}
+
+# One-way ANOVA
+data %>% rstatix::anova_test(Response ~ Diet)
+
+# One-way ANOVA without outliers
+data %>% filter(!Subject_ID %in% c(7,12,13)) %>% anova_test(Response ~ Diet)
+
+# Welch One-way ANOVA in case of inhomogeneous variances
+data %>% rstatix::welch_anova_test(Response ~ Diet)
+
+
+# Nonparametric ANOVA: Kruskal-Wallis test
+data %>% rstatix::kruskal_test(Response ~ Diet)
+
+```
+
+Compare the outputs:
+
+```{r}
+list(
+  ANOVA = data %>% anova_test(Response ~ Diet),
+  ANOVA_removed_outliers = data %>% 
+    filter(!Subject_ID %in% c(7,12,13)) %>%
+    anova_test(Response ~ Diet),
+  Welch_ANOVA = data %>% welch_anova_test(Response ~ Diet),
+  Kruskal_Wallis = data %>% kruskal_test(Response ~ Diet)
+)
+```
+
+</br>
+
+:::: {.infobox}
+
+**F/statistic** gives the value of the corresponding test statistic </br>
+**p** gives the $p$-value $\text{Pr}(.\geq \text{F/statistic})$ </br>
+**ges** gives the *generalized eta-squared* (coincides with $R^2$ in case of a one-way ANOVA)
+
+::::
+
+</br>
+
+::: {.greenbox}
+
+All tests clearly reject the null hypothesis! We may thus conclude that the diet form has a statistically significant impact on the coagulation time. 
+
+:::
+
+</br>
+
+The $F$-statistic and the $p$-value can also be found in the output of a linear regression analysis:
+
+Model equation:
+$$
+Y_{ij} = \mu_A + \alpha_i + \varepsilon_{ij},
+$$
+where $\mu_A$ is the mean value of the reference group (here: Diet "A"), $\alpha_i := \mu_i - \mu_A$ denotes the effect of group $i$ with respect to the reference group and $\varepsilon_{ij}$ are the residuals. 
+
+
+```{r}
+
+lm.fit <- lm(Response ~ Diet, data = data)
+summary(lm.fit)
+
+```
+
+
+## Carry out post hoc multiple comparisons 
+
+A significant one-way ANOVA result provides evidence for the assumption that the groups differ in the response variable. 
+</br>
+The next step is to find the pairs of groups that differ significantly. If we compare the four diet groups, we make six pairwise comparisons. To avoid bogus significant findings, we adjust/correct the $p$-values for multiplicity. 
+</br>
+**Recall**: The $p$-value is the answer to two equivalent questions:
+
+* If the null hypothesis were true, what is the chance that random sampling would result in a difference this large or larger?
+
+* What is the smallest definition of the threshold (alpha) of statistical significance at which this result would be statistically significant?
+
+The latter form of the question is less familiar, but equivalent to the first. It leads to a definition of the adjusted $p$-value, 
+
+</br>
+
+::: {.infobox}
+
+An **adjusted $p$-value** is the smallest family-wise significance level (= FWER) at which a particular comparison will be declared statistically significant as part of the multiple comparison testing. It is interpreted analogously to ordinary $p$-values.
+
+:::
+
+</br>
+
+**Example**: Consider an adjusted $p$-value of $0.0312$ for the comparison of group "A" with "B". Then the difference between "A" and "B" is statistically significant for an FWER of $5\%$, but not for an FWER of $1\%$.
+
+</br>
+
+There are multiple ways to adjust $p$-values (and confidence intervals) for multiplicity. The most commonly used methods are the following:
+
+
+
+::: {.infobox}
+
+**If you consider all pairwise comparisons**:
+
+* Use *Tukey's HSD* (= Hones Significant Difference) after an one-way ANOVA
+
+* Use *Games-Howell test* after a Welch ANOVA
+
+* Use *Dunn's test* after a Kruskal-Wallis ANOVA
+
+**If you consider pairwise comparisons against a fixed reference group**:
+
+* Use *Dunnett's test* (assumes normality and equal variances)
+
+:::
+
+The formal syntax is:
+```{r, eval = FALSE}
+#####################################################
+
+# TukeyHSD after ANOVA
+
+## rstatix
+data %>% tukey_hsd(Response ~ Diet)
+
+## DescTools
+
+DescTools::PostHocTest(aov(Response ~ Diet, data = data), method = "hsd")
+
+
+
+#####################################################
+
+# Games-Howell after Welch_ANOVA
+
+## rstatix
+
+data %>% games_howell_test(Response ~ Diet)
+
+#######################################################
+
+# Dunn's test after Kruskal-Wallis test
+
+## rstatix
+data %>% rstatix::dunn_test(Response ~ Diet)
+
+
+########################################################
+
+# Dunnett's test for comparisons against the same reference group
+
+## DescTools
+
+DescTools::DunnettTest(Response ~ Diet, data = data)
+
+```
+
+In our case, we apply TukeyHSD and Dunnett's test:
+
+```{r}
+list(
+  TukeyHSD = data %>% tukey_hsd(Response ~ Diet),
+  Dunnett = DunnettTest(Response ~ Diet, data = data)
+)
+```
+Note:
+
+* If you don't correct for multiple comparisons, you are likely to get fooled by bogus "significant" results. 
+
+* If you do correct for multiple comparisons, you lose power to detect real differences.
+
+* TukeyHSD has more power than a simple Bonferroni correction.
+
+* Dunnett's test has more power than TukeyHSD.
+
+
+Finally, let us visualize our results:
+
+```{r}
+
+## Save ANOVA results
+res.aov <- data %>% anova_test(Response ~ Diet)
+
+## Save results of post hoc comparisons
+pwc <- data %>% tukey_hsd(Response ~ Diet) %>% add_xy_position(x = "Diet")
+
+## Report group sample sizes
+n.groups <- data %>% group_by(Diet) %>% summarize(n = n())
+
+
+## Visualize all the results
+data %>% ggboxplot(x = "Diet", y = "Response", color = "Diet", palette = "jco") +
+  labs(
+    title = "Impact of diet on coagulation time",
+    subtitle = get_test_label(res.aov, detailed = TRUE),
+    caption = get_pwc_label(pwc),
+    color = "Number of animals"
+  )
+  
+  
+  
+
+```
+
+
+
+
+
+# Two-way ANOVA -- Special issues
+
+A **two-way ANOVA** generalizes the one-way ANOVA to a setting where the response is affected by two factors.
+</br>
+Accordingly, a two-way ANOVA model has four components:
+
+* **Subjects** := Observational units of the experiment (e.g. participants, animals, tissue samples; IMPORTANT: One row per subject!!)
+
+* **Factor 1** := Categorical independent variable that divides the subjects into different groups (e.g. treatment groups, experimental conditions, NOT: time points!!) 
+
+* **Factor 2** := Categorical independent variable that divides the subjects into different groups (e.g. treatment groups, experimental conditions, NOT: time points!!) 
+
+* **Response** := Metric dependent variable (e.g. the response to a treatment, drug, intervention)
+
+</br>
+Example: 
+</br>
+The production of penicillin uses a raw material, corn steep liquor, provided in five different blends. There are four production processes and, for each of the 20 blend-process combinations, we have enough material for 10 **replicates** (repeated measurements of the response under the same conditions but with different/independent subjects).
+
+
+The data set contains the following variables:
+
+* **Subject_ID**: ID number specifying each animal
+* **Process**: the production process with levels `A B C D`
+* **Blend**: a factor with five levels `Blend1 Blend2 Blend3 Blend4 Blend5`
+* **Response**: yield of penicillin
+
+
+Import the data:
+
+```{r}
+## Import the data
+data <- read_csv("data/Penicillin_example.csv")
+
+## Save a copy of the original data, if necessary
+# data.orig <- data
+
+## Print first 10 observations
+data %>% print(n = 10)
+
+
+```
+
+Convert `Process` and `Blend` as factors:
+```{r}
+## Convert Process and Blend as factors
+
+data <- data %>%
+  convert_as_factor(Process) %>%
+  set_ref_level(Process, "A") %>%
+  convert_as_factor(Blend) %>%
+  set_ref_level(Blend, "Blend1")
+
+```
+
+Check whether missing response values strongly imbalance the data:
+
+
+```{r}
+xtabs(~ Process + Blend, data = data %>% na.omit())
+
+```
+## The role of the `type`-argument
+
+In case that you have imbalanced data, different choices of the type of sum of squares can lead to different results:
+
+```{r}
+list(
+  Type_1 = data %>% na.omit() %>% anova_test(Response ~ Blend + Process + Blend:Process, type = 1),
+  Type_2 = data %>% na.omit() %>% anova_test(Response ~ Blend + Process + Blend:Process, type = 2),
+  Type_3 = data %>% na.omit() %>% anova_test(Response ~ Blend + Process + Blend:Process, type = 3)
+)
+```
+
+
+The default choice is `type = 3`.
+
+Note: All types of sums of squares coincide in the following two situations:
+
+* In case of 1-way ANOVA
+
+* In case of a balanced 2-way ANOVA
+
+## Interpretation of interaction terms
+
+An ordinary two-way ANOVA always includes the interaction term (and uses `type = 3` sum of squares).
+</br>
+Checking important model assumptions via `lm()`-residuals.
+```{r}
+lm.fit <- lm(Response ~ Blend + Process + Blend:Process, data = data)
+plot(lm.fit)
+```
+
+</br>
+
+::: {.greenbox .go}
+
+No severe violations.
+
+:::
+
+</br>
+
+Formal computation of two-way ANOVA:
+```{r}
+# Blend*Process is short for Blend + Process + Blend:Process
+data %>% na.omit() %>% anova_test(Response ~ Blend*Process, type = 3)
+```
+
+**Interaction plots** serve as a useful tool to visualize an interaction effect:
+
+
+```{r}
+
+## Creates an interaction plot
+
+summary_data <- data %>% 
+  group_by(Blend,Process) %>% 
+  summarize(
+    Mean = mean(Response,na.rm = T),
+    SD = sd(Response, na.rm = T)
+    ) %>%
+  ungroup() 
+
+interaction.plot <-  ggplot() +
+  geom_point(
+    data = summary_data, 
+    mapping = aes (x = Blend, y = Mean, color = Process, group = Process)
+    ) +
+  geom_path(
+    data = summary_data, 
+    mapping = aes (x = Blend, y = Mean, color = Process, group = Process)
+  ) +
+  geom_errorbar(
+    data = summary_data,
+    mapping = aes(x = Blend, ymin = Mean - SD, ymax = Mean + SD, color = Process), 
+    width = 0.1
+    ) +
+  labs(
+    title = "Interaction of Blend with Production"
+  ) +
+  ylab("Mean of Response") 
+
+interaction.plot
+
+
+```
+</br>
+
+::: {.greenbox}
+
+There are two main trends:
+
+* For processes A and C, yield of penicillin *decreases* with increasing blend number.
+
+* For processes B and D, yield of penicillin *increases* with increasing blend number.
+
+This explains the significant interaction.
+
+:::
+
+We add the effect of `Process`:
+```{r}
+
+## adds means of production processes
+
+Process_data <- data %>% 
+  group_by(Process) %>% 
+  summarize(
+    Mean = mean(Response,na.rm = T)
+    ) %>%
+  ungroup() 
+
+
+add_process <- geom_hline(
+  data = Process_data,
+  mapping = aes(yintercept = Mean, color = Process),
+  linetype = "dashed"
+  ) 
+
+interaction.plot + add_process +
+  labs(
+    subtitle = "Adding Process means as dashed lines"
+  )
+
+
+```
+
+::: {.greenbox}
+
+* Process C achieved by far the highest yield of penicillin.
+
+This explains the significant effect of `Process`.
+
+:::
+
+We add the effect of `Blend`:  
+```{r}
+
+Blend_data <- data %>% 
+  group_by(Blend) %>% 
+  summarize(
+    Mean = mean(Response,na.rm = T)
+    ) %>%
+  ungroup()
+
+
+add_blend <-   geom_point(
+  data = Blend_data,
+  mapping = aes(x = Blend, y = Mean)
+  )
+
+
+interaction.plot + add_blend + add_process +
+  labs(
+    subtitle = paste(
+      "Adding Process means as dashed lines",
+      "\n",
+      "Adding Blend means as black points"
+      )
+  )
+
+
+```
+
+::: {.greenbox} 
+
+* The Blend means do not differ very much.
+
+This explains the non-significant effect of `Blend`.
+
+:::
+
+\appendix
+
+# Appendix: `stats`-alternatives to `rstatix`
+
+You never have to load the package `stats` when working with R.
+There are the following important equivalents
+
+* `stats::aov()` corresponds to `rstatix::anova_test()`
+
+* `stats::oneway.test()` corresponds to `rstatix::welch_anova_test()`
+
+* `stats::kruskal.test()` corresponds to `rstatix::kruskal_test()`
+
+* `stats::shapiro.test()` corresponds to `rstatix::shapiro_test()`
+
+
+
+# Session Info {.unnumbered}
+
+```{r, echo = FALSE}
+
+sessionInfo()
+
+```

@@ -1,0 +1,52 @@
+
+/*
+CSS file to style HTML-documents generated with R-markdown 
+Author: Manuel Herbst
+Updated: 2022-11-30
+*/
+
+.huge { font-size: 500% }
+.big { font-size: 300% }
+.large { font-size: 150% }
+.small { font-size: 70% }
+.tiny { font-size: 40% }
+.red { color: red; }
+
+.center {
+  text-align: center;
+}
+
+.blackbox {
+  padding: 1em;
+  background: black;
+  color: white;
+  border: 2px solid orange;
+  border-radius: 10px;
+}
+
+.greenbox{
+  padding: 1em;
+  background: LightGreen;
+}
+
+.orangebox{
+  padding: 1em;
+  background: LightSalmon;
+}
+
+
+.infobox {
+  padding: 1em 1em 1em 4em;
+  margin-bottom: 10px;
+  border: 2px solid orange;
+  border-radius: 10px;
+  background: #f5f5f5 5px center/3em no-repeat;
+}
+
+.caution {
+  background-image: url("images/caution.png");
+}
+
+.warning {
+  background-image: url("images/warning.png");
+}
