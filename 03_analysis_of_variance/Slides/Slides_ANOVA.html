@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Analysis of variance</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Irene Schmidtmann (ischmidt@uni-mainz.de)" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+    <script src="libs/kePrint/kePrint.js"></script>
+    <link href="libs/lightable/lightable.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/FMstyles.css" type="text/css" />
+    <link rel="stylesheet" href="css/animate.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, title-slide
+
+.title[
+# Analysis of variance
+]
+.subtitle[
+## CTH Course Series on Statistics
+]
+.author[
+### Irene Schmidtmann (<a href="mailto:ischmidt@uni-mainz.de" class="email">ischmidt@uni-mainz.de</a>)
+]
+.institute[
+### IMBEI - University Medical Center Mainz
+]
+.date[
+### 2024/03/13
+]
+
+---
+
+
+
+
+
+
+# Topics
+
+* What is Analysis of variance?
+
+* One-way ANOVA and non-parametric alternative
+
+* Multiple comparisons
+
+* Block designs
+
+* Two-way ANOVA and interactions
+
+* Some extensions
+
+* Doing ANOVA using R and GraphPadPrism
+
+---
+class: inverse, center, middle
+
+# What is Analysis of variance?
+
+---
+# What is Analysis of variance?
+
+* ANOVA is a statistical technique to
+  + investigate the dependence of a quantitative variable Y on one or more 
+    categorical variables (factors)
+  + to estimate and compare means of `\(Y\)` for subgroups defined by the factors
+
+* Usual assumption: The `\(Y\)`’s follow normal distributions (they need not have 
+  all the same parameters)
+  + A considerable part of theoretical results in ANOVA is still valid under 
+  weaker assumptions.
+
+---
+# Development of ANOVA
+
+.pull-left[
+A lot of early ANOVA theory was developed in the early 20th century in the context of agricultural experiments by R. A. Fisher and colleagues – hence some of the terminology.
+]
+
+.pull-right[
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;img src="https://rss.onlinelibrary.wiley.com/cms/asset/9ec91b71-2007-4609-b6a0-f88abac4e39b/sign619-gra-0001-m.jpg" alt="Fig. 1: R. A. Fisher" width="40%" /&gt;
+&lt;p class="caption"&gt;Fig. 1: R. A. Fisher&lt;/p&gt;
+&lt;/div&gt;
+]
+
+&lt;div class="figure" style="text-align: center"&gt;
+&lt;img src="https://www.era.rothamsted.ac.uk/images/banners/Broadbalk-02.jpg" alt="Fig. 2: Rothamstead experimental station" width="100%" /&gt;
+&lt;p class="caption"&gt;Fig. 2: Rothamstead experimental station&lt;/p&gt;
+&lt;/div&gt;
+
+---
+# General ANOVA Setting
+## Comparisons more two or more means
+
+* Typically, investigator controls one or more independent variables
+  + Called factors (or treatment variables)
+  + Each factor contains two or more levels (groups, categories, classifications)
+  
+* Factors can be 
+  + Intrinsic properties of subjects, e. g. type of soil, sex, genetics
+  + Treatments applied intentionally, e. g. application of fertilizer, 
+    treatment with a drug, exposure to carcinogen
+  
+* Observe effects on the dependent variable
+  + Response to levels of independent variable
+
+* Experimental design: the plan used to collect the data
+  + How to allocate treatment to individuals
+  + How to select individuals for observational studies
+
+---
+# t-test re-visited
+
+* ANOVA can be considered a generalization of the two-sample t-test
+
+* Therefore: Let's have a further look at the t-test
+
+* t-test: Compare two treatments with respect to a normally distributed outcome variable
+  + Assume equal variances in both treatment groups 
+  + Treatment 1: `\(Y_{11}, \ldots, Y_{1n_1} \sim \mathcal{N}(\mu_1,\,\sigma^{2})\)`
+  + Treatment 2: `\(Y_{21}, \ldots, Y_{2n_2} \sim \mathcal{N}(\mu_2,\,\sigma^{2})\)`
+
+* Test problem:
+  + Null hypothesis: `\(H_0: \mu_1 = \mu_2\)`
+  + Alternative hypothesis: `\(H_1: \mu_1 \ne \mu_2\)`
+
+---
+# t-test re-visited
+## test statistic
+
+`$$t = \sqrt{\frac{n_1 \cdot n_2}{n_1 + n_2}} \cdot \frac{\bar{Y}_{1 \cdot}-\bar{Y}_{2 \cdot}}{\sqrt{\frac{1}{n_1+n_2-2} \sum_{i=1}^2 \sum_{j=1}^{n_i}\left(Y_{i j}-\bar{Y}_{i \cdot}\right)^2}}$$`
+* We relate the difference **between** groups to the variation **within** groups:
+  + Numerator: difference **between** group means `\(= \bar{Y}_{1 \cdot}-\bar{Y}_{2 \cdot}\)`
+  + Denominator: Variation **within** groups
+  `\(= {\sqrt{\frac{1}{n_1+n_2-2} \sum_{i=1}^2 \sum_{j=1}^{n_i}\left(Y_{i j}-\bar{Y}_{i \cdot}\right)^2}}\)`
+
+* Aim: extend this test to more than two groups 
+
+* We have to modify the measure for differences between group means (numerator)
+
+
+
+---
+layout: true
+# Comparing more than two groups
+---
+
+Simulated values in four groups
+.pull-left[
+&lt;img src="Slides_ANOVA_files/figure-html/Plot1-1.png" style="display: block; margin: auto;" /&gt;
+]
+.pull-right[ 
+* &lt;span style='color: #0092AC;'&gt;Values&lt;/span&gt;  `\(Y_{ij}\)` in group `\(i\)`, `\(i = 1, \ldots, I\)`, `\(j = 1, \ldots, n_i\)`
+]
+---
+
+Simulated values in four groups
+.pull-left[
+&lt;img src="Slides_ANOVA_files/figure-html/Plot2-1.png" style="display: block; margin: auto;" /&gt;
+]
+.pull-right[ 
+* &lt;span style='color: #0092AC;'&gt;Values&lt;/span&gt;  `\(Y_{ij}\)` in group `\(i\)`, `\(i = 1, \ldots, I\)`, `\(j = 1, \ldots, n_i\)`
+
+* &lt;span style='color: red;'&gt;Group means&lt;/span&gt; `\(\bar{Y_{i \cdot}} = \frac{1}{n_i}\sum_{j=1}^{n_i}{Y_{ij}}\)`
+]
+---
+
+Simulated values in four groups
+.pull-left[
+&lt;img src="Slides_ANOVA_files/figure-html/Plot3-1.png" style="display: block; margin: auto;" /&gt;
+]
+.pull-right[ 
+* &lt;span style='color: #0092AC;'&gt;Values&lt;/span&gt;  `\(Y_{ij}\)` in group `\(i\)`, `\(i = 1, \ldots, I\)`, `\(j = 1, \ldots, n_i\)`
+
+* &lt;span style='color: red;'&gt;Group means&lt;/span&gt; `\(\bar{Y_{i \cdot}} = \frac{1}{n_i}\sum_{j=1}^{n_i}{Y_{ij}}\)`
+
+* &lt;span style='color: darkblue;'&gt;Overall mean&lt;/span&gt;  `\(\bar{Y_{\cdot \cdot}} = \frac{1}{I}\sum_{i=1}^{I}{Y_{i \cdot}}\)` as common reference
+]
+---
+
+* Total Variation about the overall mean can be partitioned into
+  + Variation of the individual values about their group means and
+  + Variation of the group means about the overall mean
+  
+* So the sources of variation are analysed, hence the term **Analysis of variance** (ANOVA).
+
+* Sources of variation (or variance) are compared.
+
+* If all groups have equal means, there will be little variation of group means
+  about the overall mean.
+---
+
+layout: false
+# General notation
+* `\(I\)` treatment groups
+
+* Number of observations in group `\(i, (i = 1, \ldots, I)\)`: `\(n_i\)`
+
+* Total number of observations: `\(N = \sum_{i=1}^I n_i\)`
+
+* Assume equal variance `\(\sigma^2\)` in all treatment groups 
+
+* Assume observations in group `\(i\)` are normally distributed with 
+  `\(Y_{i1}, \ldots, Y_{in_i} \sim \mathcal{N}(\mu_i,\,\sigma^{2})\)`
+  
+* Test problem
+  + Null hypothesis: `\(H_0: \mu_1 = \mu_2 = \cdots = \mu_I\)`
+  + Alternative hypothesis: `\(H_1: \mu_i \ne \mu_j\)` for at least one pair `\(i, j\)`
+
+---
+# Finding a test statistic for differences between more than two group means 
+* The variation **within** groups can be expressed as pooled variance, similarly 
+  to the t-test:
+  
+`$$\frac{1}{N-I}\sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{i \cdot}} \right)^2$$`  
+* Replace difference **between** group means by variance of group means about 
+  the overall mean (weighted by the group size)
+  
+`$$\frac{1}{I-1}\sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2 =\frac{1}{I-1}\sum_{i=1}^{I} n_i \left( \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2$$`   
+* This leads to the test statistic for comparing `\(I\)` groups:
+
+`$$F = \frac{\frac{1}{I-1}\sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2}{\frac{1}{N-I}\sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{i \cdot}} \right)^2}$$`
+---
+# How is the t-test statistic related to F?
+* For the special case of two groups it holds that
+  `$$F = t^2$$`
+
+* For the denominator this is quite easy to see:
+  + for `\(I = 2\)` and `\(N = \sum_{i=1}^I n_i = n_1 + n_2\)`, the denominator of `\(F\)` is 
+  given by 
+  `$$\frac{1}{n_1 + n_2}\sum_{i=1}^{2}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{i \cdot}} \right)^2$$`
+  which is the square of the denominator of `\(t\)`
+  
+* For the numerator we need ab bit of calculation ...  
+
+---
+# How is the t-test statistic related to F?
+* Note that `\(n_1 \bar{Y_{1 \cdot}} + n_2 \bar{Y_{2 \cdot}} = \left( n_1 + n_2 \right) \bar{Y_{\cdot \cdot}}\)` and 
+`\(\bar{Y_{\cdot \cdot}} = \frac{n_1 \bar{Y_{1 \cdot}} + n_2 \bar{Y_{2 \cdot}}}{n_1 + n_2}\)`
+
+
+* So the numerator of `\(F\)` is given by
+`$$n_1\left( \bar{Y_{1 \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2 + 
+  n_2\left( \bar{Y_{2 \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2 = \\
+  n_1\left( \bar{Y_{1 \cdot}} - \frac{n_1 \bar{Y_{1 \cdot}} + n_2 \bar{Y_{2 \cdot}}}{n_1 + n_2} \right)^2 + 
+  n_2\left( \bar{Y_{2 \cdot}} - \frac{n_1 \bar{Y_{1 \cdot}} + n_2 \bar{Y_{2 \cdot}}}{n_1 + n_2} \right)^2 = \\
+  n_1\left( \frac{\left( n_1 + n_2 \right) \bar{Y_{1 \cdot}} - n_1 \bar{Y_{1 \cdot}} - n_2\bar{Y_{2 \cdot}}}{n_1 + n_2}  \right)^2 + 
+  n_2\left( \frac{\left( n_1 + n_2 \right) \bar{Y_{2 \cdot}} - n_1 \bar{Y_{1 \cdot}} - n_2\bar{Y_{2 \cdot}}}{n_1 + n_2}  \right)^2 = \\
+  n_1\left( \frac{n_2 \left( \bar{Y_{1 \cdot}} - \bar{Y_{2\cdot}} \right)}{n_1 + n_2}  \right)^2 +
+  n_2\left( \frac{n_1 \left( \bar{Y_{2 \cdot}} - \bar{Y_{1\cdot}} \right)}{n_1 + n_2}  \right)^2 =\\
+  \frac{n_1 n_2 \left( \bar{Y_{1 \cdot}} - \bar{Y_{2\cdot}} \right)^2}{\left( n_1 + n_2 \right)^2}\left( n_1 + n_2 \right) = 
+  \frac{n_1 n_2 \left( \bar{Y_{1 \cdot}} - \bar{Y_{2\cdot}} \right)^2}{\left( n_1 + n_2 \right)}$$`
+which is the square of the numerator of `\(t\)`.
+
+---
+# How is the t-test statistic related to F?
+* So, the F statistic can be considered a generalization of the t statistic 
+  for more than two groups.
+  
+* However, we loose the information about the direction of the difference.
+
+---
+class: inverse, center, middle
+
+# One-way ANOVA
+
+---
+# One-way ANOVA
+* What we have looked at so far amounts to one-way analysis of variance
+
+* "One-way" - we only have one independent factor
+
+* Two sources of variation:
+  + that due to treatment or independent variable
+      - captured by the sum of squares between groups
+      - describes the variation of the group mean about the overall mean
+      
+  + that unexplained by treatment
+      - captured by the sum of squares within groups
+      - describes the variation of observed values about the group means
+      - serves to estimate the “error” variance.
+
+---
+# Notation: sums of squares
+* Sum of squares between groups:
+  `$$SS_{\text{between}} = SS_{\text{treatment}} = \sum_{i=1}^{I}{n_i}\left( \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2$$`  
+  
+* Sum of squares within groups:
+  `$$SS_{\text{within}} = SS_{\text{error}} = \sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{i \cdot}} \right)^2$$` 
+  
+* Total sum of squares:
+  `$$SS_{\text{total}} = \sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{\cdot \cdot}} \right)^2$$`
+  
+* Partitioning
+`$$SS_{\text{total}} =  SS_{\text{treatment}} + SS_{\text{error}}$$`
+  
+---
+# Notation: sums of squares
+## Mean squares
+
+* Mean squares between groups:
+  `$$MS_{\text{between}} = MS_{\text{treatment}} = \frac{1}{I-1}\sum_{i=1}^{I}{n_i}\left( \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2$$`  
+  
+* Mean squares within groups:
+  `$$MS_{\text{within}} = MS_{\text{error}} =\frac{1}{N-I}\sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{i \cdot}} \right)^2$$` 
+
+---
+# Parameterisation
+
+* The group mean `\(\mu_i\)` can be thought of as consisting of
+  + overall mean `\(\mu\)` and
+  + specific effect `\(\alpha_i\)` of treatment `\(i\)`
+  + this leads to the model equations (similarity to linear regression, more: next week)
+  `$$Y_{ij} = \mu + \alpha_i + e_{ij} \quad \textrm{with} \quad e_{ij} \sim \mathcal{N}(0,\sigma^{2})$$`
+    Hence the expectation of `\(Y_{ij}\)` is
+  `$$E\left( Y_{ij} \right) = \mu + \alpha_i \quad \textrm{for all } i \textrm{ and } j, \textrm{ subject to } \sum_{i=1}^I \alpha_i= 0$$`
+  
+* Constraints on the `\(\alpha_i\)` are necessary because of an additionial parameter
+
+* Constraint `\(\sum_{i=1}^I \alpha_i= 0\)` is referred to as *effect coding*.
+
+* Other common constraints: `\(\alpha_1 = 0\)` or `\(\alpha_I = 0\)`. These are referred 
+to as *reference coding*.
+
+---
+# Estimating and comparing means
+* ANOVA is applied to compare means. 
+
+* Means and model parameters also have to be estimated.
+
+* Estimate overall mean (grand mean): `\(\hat{\mu} = \bar{Y_{\cdot \cdot}} = \frac{1}{N} \sum_{i=1}^{I}\sum_{j=1}^{n_i} Y_{ij}\)`
+
+* Estimate mean in group `\(i\)`: `\(\hat{\mu_i} = \bar{Y_{i \cdot}} = \frac{1}{n_i} \sum_{j=1}^{n_i} Y_{ij}\)`
+
+* Estimate effect of treatment `\(i\)`, i.e. difference between overall mean and group mean in group `\(i\)`:
+  `\(\hat{\alpha_i} = \hat{\mu_i} - \hat{\mu} = \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}}\)`
+  
+* Note:  
+  If the chosen constraint is `\(\alpha_1 = 0\)` (reference group parameterisation),
+  we have `\(E\left( Y_{1j} \right) = \mu\)` and hence estimate  
+  `\(\hat{\mu} = \bar{Y_{1 \cdot}}\)` and `\(\hat{\alpha_i} = \bar{Y_{i \cdot}} - \bar{Y_{1 \cdot}}\)` for `\(i \ne 1\)`
+
+---
+# Estimating means in simulated data
+Simulated values in four groups
+
+.pull-left[
+&lt;img src="Slides_ANOVA_files/figure-html/Plot3repeat1-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+&lt;table class="table table-striped" style="font-size: 15px; margin-left: auto; margin-right: auto;"&gt;
+&lt;caption style="font-size: initial !important;"&gt;Table 1: Simulated data&lt;/caption&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt;   &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Group 1 &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Group 2 &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Group 3 &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Group 4 &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1.83 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1.00 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2.25 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3.14 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.72 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.89 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 4.26 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 4.07 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.64 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1.94 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3.04 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2.95 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1.09 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3.17 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3.19 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1.25 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3.25 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3.05 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3.46 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2.87 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1.83 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2.06 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2.57 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3.14 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2.31 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1.26 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3.02 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 5.56 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3.50 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2.93 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3.70 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 5.02 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2.17 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3.67 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3.97 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 5.04 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 10 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.57 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2.56 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2.38 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2.88 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; Mean &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1.79 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2.25 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3.18 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3.59 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+Overall mean `\(\bar{Y_{\cdot \cdot}} =\)` 2.71
+]
+
+---
+# Estimating group effects in simulated data
+Simulated values in four groups
+
+.pull-left[
+&lt;img src="Slides_ANOVA_files/figure-html/Plot3repeat2-1.png" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+&lt;table class="table table-striped" style="font-size: 15px; margin-left: auto; margin-right: auto;"&gt;
+&lt;caption style="font-size: initial !important;"&gt;Table 2: Parameter estimates&lt;/caption&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:center;"&gt; Parameter &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; Estimate &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; `\(\hat{\alpha_1}\)` = &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; -0.91 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; `\(\hat{\alpha_2}\)` = &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; -0.45 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; `\(\hat{\alpha_3}\)` = &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.48 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; `\(\hat{\alpha_4}\)` = &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.89 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+---
+# ANOVA table
+The results of an ANOVA are usually presented in a table
+
+| Source         | df    | SS    | MS | E(MS) |
+|----------------|-------|-------|----|-------|
+| Between groups | `\(I-1\)` | `\(SS_{\text{treatment}} = \\ \sum_{i=1}^{I}{n_i}\left( \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2\)` | `\(MS_{\text{treatment}} = \\ \frac{1}{I-1}SS_{\text{treatment}}\)` | `\(\sigma^2 + \frac{1}{I-1} \sum_{i=1}^ I n_i \alpha_i^2\)`|
+|Within groups   | `\(N-I\)` | `\(SS_{\text{error}} = \\ \sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{i \cdot}} \right)^2\)` | `\(MS_{\text{error}} = \\ \frac{1}{N-I}SS_{\text{error}}\)` | `\(\sigma^2\)` |
+|Total           | `\(N-1\)` | `\(SS_{\text{total}} = \\ \sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{\cdot \cdot}} \right)^2\)`
+  
+
+df = degrees of freedom, MS = mean squares, E(MS) = expectation of mean squares
+
+---
+# F-test in ANOVA
+* Under `\(H_0\)` the ratio of the between and within mean squares follows an 
+  F-distribution with I-1 and N-I degrees of freedom.
+* The F-Test is usually also included in the ANOVA table.  
+
+
+| Source         | df    | SS    | MS | F |
+|----------------|-------|-------|----|-------|
+| Between groups | `\(I-1\)` |  `\(SS_{\text{treatment}} = \\ \sum_{i=1}^{I}{n_i}\left( \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2\)`  | `\(MS_{\text{treatment}} = \\ \frac{1}{I-1}SS_{\text{treatment}}\)` | `\(F = \frac{MS_{\text{treatment}}}{MS_{\text{error}}}\)`|
+|Within groups   | `\(N-I\)` | `\(SS_{\text{error}} = \\ \sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{i \cdot}} \right)^2\)` | `\(MS_{\text{error}} = \\ \frac{1}{N-I}SS_{\text{error}}\)` | |
+|Total           | `\(N-1\)` | `\(SS_{\text{total}} = \\ \sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{\cdot \cdot}} \right)^2\)` | | |
+
+---
+# Perform ANOVA with R - function lm
+* Several packages provide functions for ANOVA
+
+* E. g. use function `lm` from the `stats` package. Syntax:  
+  `lm(formula, data, subset, weights, na.action,
+   method = "qr", model = TRUE, x = FALSE, y = FALSE, qr = TRUE,
+   singular.ok = TRUE, contrasts = NULL, offset, ...)`
+   
+    + Note: the group variables must be of type factor! Otherwise a linear 
+      regression model is fitted.
+    + Contrasts can be used 
+        - to obtain tests for (pairwise) comparisons between groups
+        - to obtain estimates of effects from different parameterisations
+
+    + Also gives parameter estimates
+        - using reference coding (default)
+        - default: first groups as reference group
+        - to obtain estimates for effects `\(\alpha_i\)` use option 
+        `contrasts = list(group = contr.sum(n.groups))`
+  
+---
+# ANOVA results from function lm
+
+```r
+my.lm &lt;- lm(Y ~ group, data = aov.df)
+summary(my.lm)
+```
+
+```
+## 
+## Call:
+## lm(formula = Y ~ group, data = aov.df)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -2.34190 -0.71243 -0.06985  0.70418  1.96704 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+*## (Intercept)   1.7934     0.3254   5.512 3.13e-06 ***
+*## group2        0.4609     0.4602   1.002 0.323243    
+*## group3        1.3905     0.4602   3.022 0.004608 ** 
+*## group4        1.7996     0.4602   3.911 0.000391 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 1.029 on 36 degrees of freedom
+## Multiple R-squared:   0.35,	Adjusted R-squared:  0.2958 
+*## F-statistic: 6.461 on 3 and 36 DF,  p-value: 0.001299
+```
+
+---
+# ANOVA results from function lm
+To obtain an ANOVA table in "standard" format call function `anova` from package
+`stats` and apply it to results from call to `lm`:  
+
+
+```r
+anova(my.lm)
+```
+
+```
+## Analysis of Variance Table
+## 
+## Response: Y
+##           Df Sum Sq Mean Sq F value   Pr(&gt;F)   
+## group      3 20.521  6.8402  6.4606 0.001299 **
+## Residuals 36 38.115  1.0588                    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+  
+Residuals `\(= SS_\text{within} = SS_\text{error}\)`
+
+---
+# ANOVA using function lm with effect coding
+* To obtain estimates for `\(\alpha_i\)` from effect coding, specify contrasts.
+
+* R has a function to generate these contrasts: `contr.sum(n.groups)`
+
+* `my.lm2 &lt;-  lm(Y ~ group, data = aov.df,`  
+  `contrasts = list(group = contr.sum(n.groups)))`
+  
+* This gives  
+  Intercept `\(=\hat{\mu}\)`  
+  group1 `\(=\hat{\alpha_1}\)`  
+  group2 `\(=\hat{\alpha_2}\)`  
+  group3 `\(=\hat{\alpha_3}\)`  
+  `\(\hat{\alpha_4} = -\hat{\alpha_1} - \hat{\alpha_2} - \hat{\alpha_3}\)`
+
+---
+# ANOVA results from function lm with effect coding
+
+```
+## 
+## Call:
+## lm(formula = Y ~ group, data = aov.df, contrasts = list(group = contr.sum(n.groups)))
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -2.34190 -0.71243 -0.06985  0.70418  1.96704 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+*## (Intercept)   2.7061     0.1627  16.633  &lt; 2e-16 ***
+*## group1       -0.9127     0.2818  -3.239  0.00258 ** 
+*## group2       -0.4519     0.2818  -1.604  0.11756    
+*## group3        0.4777     0.2818   1.695  0.09865 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 1.029 on 36 degrees of freedom
+## Multiple R-squared:   0.35,	Adjusted R-squared:  0.2958 
+## F-statistic: 6.461 on 3 and 36 DF,  p-value: 0.001299
+```
+
+---
+
+class: inverse, center, middle
+
+# Non-parametric alternative
+
+---
+# Alternatives for non-normal data
+* Normal distribution of observations in groups is prerequisite for ANOVA.
+  + This should be checked.
+  + Some methods for checking will be covered in the exercises.
+
+* If data are not normally distributed
+  + Transform data such that transformed data are normally distributed, 
+  e. g. taking log 
+  + Use a non-parametric test, based on ranks
+  
+* Wilcoxon-Mann-Whitney test as non-parametric alterative to t-test
+
+* Test based on ranks for more than two groups?
+
+---
+# Kruskal-Wallis test
+
+* Use ranks `\(R_{ij} = \text{rank}\left( Y_{ij}\right)\)` instead of the original 
+  values
+
+* The test statistic of the Kruskal-Wallist test is
+  `$$H=(N-1) \frac{\sum_{i=1}^I n_i\left(\bar{R}_{i \cdot}-\bar{R}_{\cdot \cdot}\right)^2}{\sum_{i=1}^I \sum_{j=1}^{n_i}\left(R_{i j}-\bar{R_{\cdot \cdot}} \right)^2} \, \text{with}$$`
+  + `\(\bar{R}_{i \cdot}\)` mean of ranks in group `\(i\)`
+  
+  + `\(\bar{R}_{\cdot \cdot} = \frac{1}{2}\left( N+1 \right)\)` overall mean of ranks
+  
+* If there are no ties, the test statistic simplifies to
+`$$H=\frac{12}{N(N+1)} \sum_{i=1}^I n_i \bar{R}_{i \cdot}^2-3(N+1)$$`
+
+* Under `\(H_0\)`, the test statistic follows (approximately) as 
+  `\(\chi^2\)`-distribution with `\(I-1\)` degrees of freedom.
+
+---
+# Perform Kruskal-Wallis test in R
+* Function `kruskal.test` can be used. It can be called in different ways
+
+* Syntax: `kruskal.test(x, g, ...)` or `kruskal.test(formula, data, subset, na.action, ...)`
+
+* For simulated example `kruskal.test(Y ~ as.factor(group), data = Y.df)`
+
+
+```
+## 
+## 	Kruskal-Wallis rank sum test
+## 
+## data:  Y by group
+## Kruskal-Wallis chi-squared = 12.171, df = 3, p-value = 0.006819
+```
+
+---
+class: inverse, center, middle
+
+# Multiple comparisons or post-hoc tests
+
+---
+# Multiple comparisons or post-hoc tests
+* When the global null hypothesis of equal cell means in ANOVA is rejected by 
+  the F-test, further inference might be desired
+  + Compare each treatment group with each other
+  + Compare all treatments with control
+  
+* Multiple comparison procedures (MCPs) give more detailed information about the
+  differences among the means
+  
+* F-Test ensures control of experiment-wise error rate under the complete null 
+  hypothesis (i. e. all groups have identical means)
+  
+* Various suggestions to control maximum experiment-wise error rate under **any** 
+  complete or partial null hypothesis, i. e. any subset of  groups have 
+  identical means
+  
+* Post-hoc test should only be performed if the F test gives a significant 
+  result.
+
+---
+# Multiple comparisons or post-hoc tests
+* Typically are similar to a two sample t-test
+
+* Bonferroni correction  
+  + Pair-wise comparisons, adjust significance level by Bonferroni method
+  + Advantage: very simple
+  + Drawback: can be very conservative
+  
+* Tukey-Kramer test (or Tukey’s honest significant difference)
+  + All pair-wise comparisons
+  + Generally good choice if all pairs of means are to be compared
+  
+* Dunnett test 
+  + Each treatment compared to a control
+  + No comparison between treatments
+
+---
+# Multiple comparisons or post-hoc tests
+* Pairwise comparison between groups `\(i\)` and `\(j\)` based on test static `\(t_{ij}\)` with  
+  `\(t_{ij}= \frac{\bar{Y_{i \cdot}} - \bar{Y_{j \cdot}}}{\hat{\sigma}}\)` 
+  where `\(\hat{\sigma}^2\)` is the estimated variance of `\(\bar{Y_{i \cdot}} - \bar{Y_{j \cdot}}\)`
+  
+* The null hypothesis `\(H_0: \mu_i = \mu_j\)` is rejected if `\(\left|(t_{ij})\right| &gt; c(\alpha)\)`
+
+  + Bonferroni: 
+      - perform `\(c\)` pairwise comparisons
+      - `\(c(\alpha) = t_{n_i + n_j - 2, 1 - \frac{\alpha^*}{2}}\)` with 
+        `\(\alpha^* = \frac{\alpha}{c}\)`,  
+        i. e. use significance level  `\(\alpha^*\)` instead of `\(\alpha\)`
+
+  + Tukey-Kramer test (Tukey honest significant difference)
+      - perform all pairwise comparisons of `\(k\)` means
+      - `\(c(\alpha) = q(\alpha; k; \nu)/\sqrt{2}\)` where `\(q(\alpha; k; \nu)\)` is the level
+        `\(\alpha\)` critical value of a studentized range distribution of `\(k\)` 
+          independent normal random variables with `\(\nu\)` degrees of freedom. 
+      - sample sizes should be (at least) approximately equal
+
+---
+# Multiple comparisons or post-hoc tests
+* Pairwise comparison between groups `\(i\)` and `\(j\)` based on test static `\(t_{ij}\)` with  
+  `\(t_{ij}= \frac{\bar{Y_i \cdot} - \bar{Y_j \cdot}}{\hat{\sigma}}\)` 
+  where `\(\hat{\sigma}^2\)` is the estimated variance of `\(\bar{Y_i \cdot} - \bar{Y_j \cdot}\)`
+  
+* The null hypothesis `\(H_0: \mu_i = \mu_j\)` is rejected if `\(\left|(t_{ij})\right| &gt; c(\alpha)\)`
+  + Dunnett test
+      - Compare all treatments to one common control, reject `\(H_0: \mu_i = \mu_0\)` 
+        where `\(\mu_0\)` is the means of the controls if
+      - `\(\left|t_{i0}\right| &gt; d\left(\alpha ; k, \nu, \rho_1, \ldots, \rho_{k-1}\right)\)`
+        where `\(d\left(\alpha ; k, \nu, \rho_1, \ldots, \rho_{k-1}\right)\)` is the
+        critical value of the "many-to-one" statistic for `\(k\)` means with `\(\nu\)` 
+        degrees of freedom and correlations 
+        `\(\rho_1, \ldots, \rho_{k-1}, \rho_i=n_i /\left(n_0+n_i\right)\)`
+
+---
+# Multiple comparisons in R 
+Tukey test for simulated data
+
+```r
+tukey &lt;- tukey_hsd(my.lm)
+
+kable(tukey, 
+      format = 'html', digits = 3, align = "c",
+      row.names = FALSE, col.names = names(tukey),
+      caption = paste0("Table ", table.count, 
+                       ": Results of Tukey test")) %&gt;%
+  kable_styling(bootstrap_options = "striped", 
+                font_size = 15, full_width = TRUE, position = "left")
+```
+
+&lt;table class="table table-striped" style="font-size: 15px; "&gt;
+&lt;caption style="font-size: initial !important;"&gt;Table 3: Results of Tukey test&lt;/caption&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:center;"&gt; term &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; group1 &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; group2 &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; null.value &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; estimate &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; conf.low &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; conf.high &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; p.adj &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; p.adj.signif &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; group &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.461 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; -0.778 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1.700 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.749 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; ns &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; group &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1.390 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.151 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2.630 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.023 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; * &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; group &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1.800 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.560 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3.039 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.002 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; ** &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; group &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.930 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; -0.310 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2.169 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.200 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; ns &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; group &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1.339 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.099 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2.578 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.030 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; * &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;"&gt; group &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.409 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; -0.830 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1.648 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.810 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; ns &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+
+---
+# Multiple comparisons in R 
+Dunnett test for simulated data - group 1 as reference
+
+```r
+Dunnett &lt;- DunnettTest(Y ~ group, data = aov.df)
+
+kable(Dunnett$`1`,
+      format = 'html',
+      row.names = TRUE, col.names = colnames(Dunnett$`1`),
+      caption = paste0("Table ", table.count,
+                       ": Results of Dunnett test"),
+      digits = 3, align = "c") %&gt;%
+  kable_styling(bootstrap_options = "striped",
+                font_size = 15, full_width = TRUE, position = "left")
+```
+
+&lt;table class="table table-striped" style="font-size: 15px; "&gt;
+&lt;caption style="font-size: initial !important;"&gt;Table 4: Results of Dunnett test&lt;/caption&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt;   &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; diff &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; lwr.ci &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; upr.ci &lt;/th&gt;
+   &lt;th style="text-align:center;"&gt; pval &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 2-1 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.461 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; -0.668 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1.589 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.628 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 3-1 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1.390 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.262 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2.519 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.013 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 4-1 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 1.800 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.671 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 2.928 &lt;/td&gt;
+   &lt;td style="text-align:center;"&gt; 0.001 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+---
+# Multiple comparisons or post hoc tests 
+## Non-parametric case
+* If the Kruskall-Wallis test gives a significant result, there are    also methods for further comparisons
+
+* Bonferroni-method could be applied with pairwise comparison using
+  the Mann-Whitney test
+  
+* For all pairwise comparisons: Dunn’s test 
+
+---
+class: inverse, center, middle
+
+# Simple block experiment
+
+---
+# Simple block experiment
+Assumptions
+* `\(i = 1, \ldots, I\)` treatments, `\(j = 1, \ldots, j\)` blocks
+
+* Each treatment is administered to each block **exactly once**. 
+
+* Data are normally distributed with common variance
+
+* Observations are independent
+
+* Let `\(Y_{ij}\)` observation in block `\(j\)` with treatment `\(i\)`
+
+* `\(Y_{ij} = \mu + \alpha_i + \beta_j + e_{ij}\)` with `\(e_{ij} \sim \mathcal{N}(0,\,\sigma^{2})\)`, i. e. 
+`\(Y_{ij} \sim \mathcal{N}(\mu + \alpha_i + \beta_j,\,\sigma^{2})\)` subject to constraints  
+`\(\sum_{i=1}^I \alpha_i = 0\)` and `\(\sum_{j=1}^J \beta_j = 0\)`
+
+* `\(\alpha_i\)` treatment effects
+
+* `\(\beta_j\)` block effects
+
+
+---
+# When and how to use simple block experiments?
+
+* When experimental units or subjects are not homogeneous
+
+* Introduce blocking factor such that experimental units are homogenous within each block
+  + experimental conditions vary
+      - temperature differs between days - day (or temperature) as blocking factor
+      - animals from one litter or from one cage - litter or cage as blocking factor
+      
+* Corresponds to paired comparisons or stratification
+
+* Main interest is in treatments, but effects of blocks can be estimated
+
+* Randomise treatments such that each treatment is applied exactly once in each 
+  block `\(\rightarrow\)` randomised block design
+  + ANOVA as in simple block experiment
+  
+---
+# Means and effect estimates in simple block experiment
+| Description                        | Formula |
+| -----------------------------------|---------|
+| Mean over blocks for treatment `\(i\)` | `\(\bar{Y_{i \cdot}} = \frac{1}{J} \sum_{j=1}^J Y_{ij}\)` |
+| Mean over treatments for block `\(j\)` | `\(\bar{Y_{\cdot j}} = \frac{1}{I} \sum_{i=1}^I Y_{ij}\)` |
+| Overall mean                       | `\(\hat{\mu} = \bar{Y_{\cdot \cdot}} = \frac{1}{IJ} \sum_{i=1}^I\sum_{j=1}^J Y_{ij}\)` |
+| Estimate treatment effect in group `\(i\)` | `\(\hat{\alpha_i} = \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}}\)`|
+| Estimate block effect in block `\(j\)` | `\(\hat{\beta_j} = \bar{Y_{\cdot j}} - \bar{Y_{\cdot \cdot}}\)`|
+
+---
+# Hypotheses in simple block experiment
+
+* Treatment effects
+  + `\(H_0: \alpha_1 = \alpha_2 = \cdots = \alpha_I = 0\)`
+  + `\(H_1: \alpha_i \ne 0\)` for at least one `\(i\)`
+  
+* Block effects
+  + `\(H_0: \beta_1 = \beta_2 = \cdots = \beta_J = 0\)`
+  + `\(H_1: \beta_j \ne 0\)` for at least one `\(j\)`
+
+---
+# ANOVA Table for simple block experiment
+
+| Source         | df    | SS    | MS | E(MS) |
+|----------------|-------|-------|----|-------|
+| Between treatments | `\(\small{I-1}\)` | `\(SS_{\text{A}} = \\ J\sum_{i=1}^{I}\left( \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2\)` | `\(MS_{\text{A}} = \\ \frac{1}{I-1}SS_{\text{A}}\)` | `\(\sigma^2 + \\ \frac{J}{I-1} \sum_{i=1}^ I \alpha_i^2\)`|
+| Between blocks | `\(\small{J-1}\)` | `\(SS_{\text{B}} = \\ I\sum_{j=1}^{J}\left( \bar{Y_{\cdot j}} - \bar{Y_{\cdot \cdot}} \right)^2\)` | `\(MS_{\text{B}} = \\ \frac{1}{J-1}SS_{\text{B}}\)` | `\(\sigma^2 + \\ \frac{I}{J-1} \sum_{j=1}^ J \beta_j^2\)`|
+|Error           | `\(\small{(I-1)\cdot \\ (J-1)}\)` | `\(SS_{\text{e}} =  \sum_{i=1}^{I}\sum_{j=1}^{J} \\ \left( Y_{ij} - \bar{Y_{i \cdot}} - \bar{Y_{\cdot j}}  + \bar{Y_{\cdot \cdot}}\right)^2\)` | `\(MS_{\text{e}} = \\ \frac{1}{(I-1)(J-1)}SS_{\text{e}}\)` | `\(\sigma^2\)` |
+|Total           | `\(\small{IJ-1}\)` | `\(SS_{\text{total}} = \\ \sum_{i=1}^{I}\sum_{j=1}^{J}\left( Y_{ij} - \bar{Y_{\cdot \cdot}} \right)^2\)` |  |  | |
+  
+df = degrees of freedom, MS = mean squares, E(MS) = expectation of mean squares
+
+---
+# F-test in simple block experiment
+
+| Source         | df    | SS    | MS | F |
+|----------------|-------|-------|----|-------|
+| Between treatments | `\(\small{I-1}\)` | `\(SS_{\text{A}} = \\ J\sum_{i=1}^{I}\left( \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2\)` | `\(MS_{\text{A}} = \\ \frac{1}{I-1}SS_{\text{A}}\)` | `\(F_A=\frac{MS_A}{MS_e}\)`|
+| Between blocks | `\(\small{J-1}\)` | `\(SS_{\text{B}} = \\ I\sum_{j=1}^{J}\left( \bar{Y_{\cdot j}} - \bar{Y_{\cdot \cdot}} \right)^2\)` | `\(MS_{\text{B}} = \\ \frac{1}{J-1}SS_{\text{B}}\)` | `\(F_B=\frac{MS_B}{MS_e}\)`|
+|Error           | `\(\small{(I-1)\cdot \\ (J-1)}\)` | `\(SS_{\text{e}} =  \sum_{i=1}^{I} \sum_{j=1}^{J}\\ \left( Y_{ij} - \bar{Y_{i \cdot}} - \bar{Y_{\cdot j}}  + \bar{Y_{\cdot \cdot}}\right)^2\)` | `\(MS_{\text{e}} = \\ \frac{1}{(I-1)(J-1)}SS_{\text{e}}\)` |  |
+|Total           | `\(\small{IJ-1}\)` | `\(SS_{\text{total}} = \\ \sum_{i=1}^{I}\sum_{j=1}^{J}\left( Y_{ij} - \bar{Y_{\cdot \cdot}} \right)^2\)` |  |  | |
+  
+Under the treatment null hypothesis, the ratio of the between treatments and 
+error mean squares follows an F-distribution with `\(I-1\)` and `\((I-1)(J-1)\)` 
+degrees of freedom. Similar argument for testing the block null hypothesis.
+
+---
+# Simulate data from block experiment
+
+
+&lt;div class="figure" style="text-align: left"&gt;
+&lt;img src="Slides_ANOVA_files/figure-html/plot_block-1.png" alt="Fig. 7: Block experiment with 3 treatments applied to 15 blocks. Data by treatment and block" width="80%" /&gt;
+&lt;p class="caption"&gt;Fig. 7: Block experiment with 3 treatments applied to 15 blocks. Data by treatment and block&lt;/p&gt;
+&lt;/div&gt;
+
+---
+# ANOVA in block design
+
+```r
+my.lmb &lt;- lm(Yb ~ treatment + block, data = block.df)
+anova(my.lmb)
+```
+
+```
+## Analysis of Variance Table
+## 
+## Response: Yb
+##           Df Sum Sq Mean Sq F value    Pr(&gt;F)    
+## treatment  2 39.944 19.9722 21.0065 2.677e-06 ***
+## block     14 62.466  4.4619  4.6929 0.0002493 ***
+## Residuals 28 26.621  0.9508                      
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+---
+class: inverse, center, middle
+
+# Two-way anova
+
+---
+# Two-way ANVOA: Assumptions
+* The explanatory variables we are interested in, factors A and B, 
+  have `\(I\)` and `\(J\)` levels respectively
+  + Think of (A) genetic background (WT vs genetically modified) and (B) drug
+    treatment
+
+* Effect of factor B may differ between levels of A or vice versa:  
+  effect of factor A may differ between levels of B 
+  
+* There are `\(K\)` replicates for each combination `\(i, j\)`
+  + Equal number of replicates (“balanced design”) is not necessary, but is 
+    assumed here for simplicity (and has nice statistical properties)
+
+* Data are normally distributed with common variance
+
+* Observations are independent
+
+---
+# Two-way ANVOA: Layout
+* Factor Treatment with 3 levels  
+* Factor Genotype with 2 levels
+
+&lt;div class="figure" style="text-align: left"&gt;
+&lt;img src="images/Two factor layout.png" alt="Fig. 8: Two-way layout" width="75%" /&gt;
+&lt;p class="caption"&gt;Fig. 8: Two-way layout&lt;/p&gt;
+&lt;/div&gt;
+
+---
+# Two-way ANVOA: model formulae
+Let `\(Y_{ijk}\)` `\(k\)`-th replicate for level `\(i\)` of factor (treatment) A and level
+  `\(j\)` of factor (treatment) B
+  `$$Y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha \beta)_{ij} + e_{ijk}$$` 
+  with `\(e_{ijk} \sim \mathcal{N} \left(0, \sigma^2 \right)\)`, i. e.  
+  `\(Y_{ijk} \sim \mathcal{N} \left( \mu + \alpha_i + \beta_j + (\alpha \beta)_{ij}, \sigma^2 \right)\)` subject to constraints
+  + `\(\sum_{i=1}^I \alpha_i = 0\)`
+  + `\(\sum_{j=1}^J \beta_j = 0\)`
+  + `\(\sum_{i=1}^I (\alpha \beta)_{ij} = 0\)` for all `\(j\)`
+  + `\(\sum_{j=1}^J (\alpha \beta)_{ij} = 0\)` for all `\(i\)`
+
+  
+---
+# Means and effect estimates in two-way ANOVA
+| Description                        | Formula |
+| -----------------------------------|---------|
+| Overall mean | `\(\hat{\mu} = \bar{Y_{\cdot \cdot \cdot}} = \frac{1}{IJK}\sum_{i=1}^{I}\sum_{j=1}^{J}\sum_{k=1}^{K} Y_{ijk}\)` |
+|Mean over all levels of B for `\(i\)`-th level of A | `\(\bar{Y_{i \cdot \cdot}} = \frac{1}{JK} \sum_{j=1}^{J}\sum_{k=1}^{K} Y_{ijk}\)` |
+| Mean over all levels of A for `\(j\)`-th level of B | `\(\bar{Y_{\cdot j \cdot}} = \frac{1}{IK} \sum_{i=1}^{I}\sum_{k=1}^{K} Y_{ijk}\)` |
+| Mean for `\(i\)`-th level of A and `\(j\)`-th level of B | `\(\bar{Y_{ij \cdot}} = \frac{1}{K}\sum_{k=1}^{K} Y_{ijk}\)` |
+| Treatment effect for `\(i\)`-th level of A | `\(\hat{\alpha_i} = \bar{Y_{i \cdot \cdot}} - \bar{Y_{\cdot \cdot \cdot}}\)` |
+|Treatment effect for `\(j\)`-th level of B | `\(\hat{\beta_j} = \bar{Y_{\cdot j \cdot}} - \bar{Y_{\cdot \cdot \cdot}}\)` |
+|Interaction of A and B at `\(i\)`-th level of A and `\(j\)`-th level of B | `\(\hat{(\alpha \beta)_{ij}} = \bar{Y_{ij \cdot}} - \bar{Y_{i \cdot \cdot}} - \bar{Y_{\cdot j \cdot}} +  \bar{Y_{\cdot \cdot \cdot}}\)` |
+
+---
+# Hypotheses in two-way ANOVA
+
+* Main effects of factor A
+  + `\(H_0: \alpha_1 = \alpha_2 = \cdots = \alpha_I = 0\)`
+  + `\(H_1: \alpha_i \ne 0\)` for at least one `\(i\)`
+  
+* Main effects of factor B
+  + `\(H_0: \beta_1 = \beta_2 = \cdots = \beta_J = 0\)`
+  + `\(H_1: \beta_j \ne 0\)` for at least one `\(j\)`
+
+* Interactions
+  + `\(H_0: (\alpha \beta)_{11} = (\alpha \beta)_{12} = \cdots= (\alpha \beta)_{IJ} = 0\)`
+  + `\(H_1: (\alpha \beta)_{ij} \ne 0\)` for at least one pair `\(i, j\)`
+
+---
+# ANOVA table for two-way layout
+| Source         | df    | SS    | MS | E(MS) |
+|----------------|-------|-------|----|-------|
+| Main effect A | `\(I-1\)` | `\(SS_{\text{A}} = \\ JK\sum_{i=1}^{I}\left( \bar{Y_{i \cdot \cdot}} - \bar{Y_{\cdot \cdot \cdot}} \right)^2\)` | `\(MS_{\text{A}} = \\ \frac{1}{I-1}SS_{\text{A}}\)` | `\(\sigma^2 + \\ \frac{JK}{I-1} \sum_{i=1}^ I \alpha_i^2\)`|
+| Main effect B | `\(J-1\)` | `\(SS_{\text{B}} = \\ IK\sum_{j=1}^{J}\left( \bar{Y_{\cdot j \cdot}} - \bar{Y_{\cdot \cdot \cdot}} \right)^2\)` | `\(MS_{\text{B}} = \\ \frac{1}{J-1}SS_{\text{B}}\)` | `\(\sigma^2 + \\ \frac{IK}{J-1} \sum_{j=1}^ J \beta_j^2\)`|
+|AB inter- action | `\((I-1)\cdot \\ (J-1)\)` | `\(SS_{\text{AB}} = \\ K \sum_{i=1}^{I}\sum_{j=1}^{J}\left( Y_{ij \cdot} - \bar{Y_{i \cdot \cdot}} \\ - \bar{Y_{\cdot j \cdot}}  + \bar{Y_{\cdot \cdot \cdot}}\right)^2\)` | `\(MS_{\text{AB}} = \\ \frac{1}{(I-1)(J-1)}SS_{\text{AB}}\)` | `\(\sigma^2 + \\ \frac{K}{(I-1)(J-1)} \cdot \\ \sum_{i=1}^I\sum_{j=1}^J (\alpha \beta)_{ij}\)` |
+| Error           | `\(IJ\\(K-1)\)` | `\(SS_e =  \sum_{i=1}^I\sum_{j=1}^J\sum_{k=1}^K \\ \left (Y_{ijk} - Y_{\cdot \cdot \cdot} \right)^2\)` | `\(MS_e = \\ \frac{}{IJ(K-1)}SS_e\)` | `\(\sigma^2\)` |
+|Total           | `\(IJK-1\)` | `\(SS_{\text{total}} =  \sum_{i=1}^{I}\sum_{j=1}^{J}\sum_{k=1}^K\)` | `\(\left( Y_{ijk} - \bar{Y_{\cdot \cdot \cdot}} \right)^2\)` |  | |
+
+---
+# F-test in two-way layout
+
+| Source         | df    | SS    | MS | F |
+|----------------|-------|-------|----|-------|
+| Main effect A | `\(I-1\)` | `\(SS_{\text{A}} = \\ JK\sum_{i=1}^{I}\left( \bar{Y_{i \cdot \cdot}} - \bar{Y_{\cdot \cdot \cdot}} \right)^2\)` | `\(MS_{\text{A}} = \\ \frac{1}{I-1}SS_{\text{A}}\)` | `\(F_A=\frac{MS_A}{MS_e}\)` |
+| Main effect B | `\(J-1\)` | `\(SS_{\text{B}} = \\ IK\sum_{j=1}^{J}\left( \bar{Y_{\cdot j \cdot}} - \bar{Y_{\cdot \cdot \cdot}} \right)^2\)` | `\(MS_{\text{B}} = \\ \frac{1}{J-1}SS_{\text{B}}\)` | `\(F_B=\frac{MS_B}{MS_e}\)` |
+|AB inter- action | `\((I-1)\cdot \\ (J-1)\)` | `\(SS_{\text{AB}} = \\ K \sum_{i=1}^{I}\sum_{j=1}^{J}\left( Y_{ij \cdot} - \bar{Y_{i \cdot \cdot}} \\ - \bar{Y_{\cdot j \cdot}}  + \bar{Y_{\cdot \cdot \cdot}}\right)^2\)` | `\(MS_{\text{AB}} = \\ \frac{1}{(I-1)(J-1)}SS_{\text{AB}}\)` | `\(F_{AB}=\frac{MS_{AB}}{MS_e}\)` |
+| Error           | `\(IJ \cdot \\(K-1)\)` | `\(SS_e =  \sum_{i=1}^I\sum_{j=1}^J\sum_{k=1}^K \\ \left (Y_{ijk} - Y_{\cdot \cdot \cdot} \right)^2\)` | `\(MS_e = \\ \frac{}{IJ(K-1)}SS_e\)` |   |
+|Total           | `\(IJK-1\)` | `\(SS_{\text{total}} =  \sum_{i=1}^{I}\sum_{j=1}^{J}\sum_{k=1}^K\)` | `\(\left( Y_{ijk} - \bar{Y_{\cdot \cdot \cdot}} \right)^2\)` |  | |
+
+---
+# Two-way layout example
+see exercises
+
+---
+class: inverse, center, middle
+
+# Extensions
+
+---
+# Higher order factorial models
+* More than two factors can be included in a model
+
+* Higher order interactions can be fitted, e.g. 3-way ANOVA
+
+`$$Y_{ijkl} = \mu + \alpha_i + \beta_j + \gamma_k + (\alpha \beta)_{ij} + (\alpha \gamma)_{ik} + (\beta \gamma)_{jk} + (\alpha \beta \gamma)_{ijk} + e_{ijkl}$$`
+
+* However, interpretation becomes difficult with more than three
+  factors.
+
+---
+# Variance inhomogeneity
+
+* Homogenous variance across cells is important for valid ANOVA
+  results
+  
+* If the homogeneity assumption is violated, a possible solution 
+  is to use Welch ANOVA
+  + Post-hoc test: Games-Howell test
+  
+* There are also more general linear models that allow different 
+  variances and correlated data
+  
+  + Such models typically need larger samples as there are more
+    parameters to estimate
+
+
+---
+# Hierarchical models and cluster structures
+
+* Nested (hierarchical) designs
+  + A factor C is said to be nested within the levels of A, if every level of C
+  appears with only a single level of A in the observation.
+    - Patients nested within a hospital 
+    - Students nested within a school  
+
+* Applications
+  + Teaching method is typically by class    
+    Outcome is observed by student  
+  + New hygiene protocol is usually introduced by hospital (ward)  
+    Outcome is observed by patient  
+
+---
+# Hierarchical models and cluster structures
+* Model equation: `\(Y_{ijk} = \mu + \alpha_i + \gamma_{ij} + e_{ijk}\)`
+  subject to constraints `\(\sum_{i=1}^{I}\alpha_i = 0, \sum_{j=1}^{J}\gamma_{ij} = 0\)` for all `\(i\)`
+  
+* Factor A ( `\(\alpha_i\)`'s) denotes the cluster, e.g. hospital or class
+
+* Factor C ( `\(\gamma_{ij}\)`'s) denotes the treatment `\(j\)` within cluster `\(i\)`, e.g.
+  hygiene protocol or teaching method.
+  
+* The variability of subjects within a cluster is captured by the error term
+  `\(e_{ijk}\)`
+  
+* No term `\(\beta_j\)` here because in each cluster only one treatment is used
+
+---
+# Repeated measurements and random effects
+
+* So far: only independent observations
+* Dependent observations on subjects may arise
+  + if multiple measurement are made on one subject
+  + if observations are clustered
+
+* Examples
+  + Repeated measurements
+      - Observe one subject at several time points
+      - Each subject receives the same set of treatments 
+  + Clustered data 
+      - Patients within a hospital
+      - Animals within a litter
+      - Students within a class
+      - Clusters per se are not of interest but there may be variation 
+        between clusters
+      - Subject within a cluster may be more homogeneous
+
+---
+# Repeated measurement ANOVA
+
+* At first the model looks similar to the one way model:  
+  `\(Y_{ij} = \mu + \alpha_i + e_{ij}\)`
+  
+* `\(\alpha_i\)` could describe a time effect
+  
+* However the residuals coming from the same individual `\(j\)` are correlated, not
+  independent.
+
+* This must be taken into account when fitting the model.
+
+* `\(\left( e_{i1}, \ldots, e_{iJ} \right)\)` are assumed to have a 
+  **multivariate** normal distribution.
+
+---
+# Random effects 
+* So far we were interested in the effects as such.
+
+* Sometimes “levels” considered in an experiment are thought of as a random 
+  sample of possible “levels”
+  + e. g. investigators or measuring devices are often considered as 
+    **random effects**
+  + In this case we are not so much interested in the difference of one
+    investigator or device from the mean but rather in the variability of
+    investigators or devices.
+
+---
+# Random effects 
+* Random effects may also be used in repeated measurement analysis and for
+  hierarchical designs.
+  
+* Repeated measurements
+  - We may be interested in a time effect.
+  - We are not interested in the effects of subject per se.
+  - The subjects are considered as a random sample from the universe of
+    possible subjects.
+
+* Cluster designs
+  - We may be interested in a treatment effect.
+  - We are not interested in the effects of clusters per se.
+  - The clusters are considered as a random sample from the universe of
+    possible clusters.
+
+---
+# Linear mixed models
+* A mixed model has both fixed effects and random effects.
+
+* Fixed effects e. g.
+  + Treatment
+  + Time
+  + Genetic background
+  
+* Random effects e. g.
+  + Hospital, class
+  + Patients, students, animals
+  + Device
+  + Replicate
+  
+* Whether an effect should be considered fixed or random depends on aim 
+  of research.
+
+---
+# Repeated measurement as linear mixed model
+* Structure is similar to simple block experiment
+
+* `\(Y_{ij} = \mu + \alpha_i + b_j + e_{ij}\)` with `\(e_{ij} \sim \mathcal{N}(0,\,\sigma_e^{2})\)`, and `\(b_i \sim \mathcal{N}(0,\,\sigma_B^{2})\)`
+
+* `\(\alpha_i\)` describes a treatment effect ("fixed")
+
+* `\(b_j\)` describes a random subject effect
+  - Data are normally distributed with common variance within cluster
+  - Observations are **independent between clusters**
+  - But as `\(b_j\)` is shared by all subjects in cluster `\(j\)` there is 
+    ** dependency within clusters**
+  - Usual constraints `\(\sum_{i=1}^I\alpha_i = 0\)`
+
+---
+# Advantage of using random effects for repeated measurement designs
+* Better handling of missing values
+
+* Partition variance into subject variance and error variance
+
+* Easier interpretation (?)
+
+---
+class: center, middle
+
+# All models are wrong, but some are useful.
+
+ attributed to George Box
+
+---
+class: inverse, center, middle
+
+# The End
+
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

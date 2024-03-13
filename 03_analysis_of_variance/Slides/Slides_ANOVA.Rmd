@@ -1,0 +1,1175 @@
+---
+title: "Analysis of variance"
+subtitle: "CTH Course Series on Statistics"
+author: "Irene Schmidtmann (ischmidt@uni-mainz.de)"
+institute: "IMBEI - University Medical Center Mainz"
+date: "2024/03/13"
+output:
+  xaringan::moon_reader:
+    css: ["default", "default-fonts","css/FMstyles.css","css/animate.css"]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      titleSlideClass: [center, middle]
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(
+	eval = TRUE,
+	echo = TRUE,
+	fig.align = "center",
+	message = FALSE,
+	warnings = TRUE
+)
+fig.count <- 0
+table.count <- 1
+
+# This data directory is only needed to export data frame as SAS data frames
+# in transport format
+data.directory <- "C:/Users/ischmidt/Documents/Kooperative Projekte/CTH/CTH Plattform Biostatistik/Kursprogramm/courseware_CTH-main/04_analysis_of_variance/Data"
+```
+
+```{r setup2, include=FALSE}
+# library(readr)
+library("ggplot2")
+# library("GGally")
+# library("dplyr")
+library("knitr")
+library("kableExtra")
+library("haven")
+# library("car")
+# library("modelsummary")
+library("rstatix")
+library("DescTools")
+
+# library("ISLR2")
+# library("DESeq2")
+# library("airway")
+# library("ade4")
+
+# define colorize function to obtain coloured text
+
+colorize <- function(x, color) {
+  if (knitr::is_latex_output()) {
+    sprintf("\\textcolor{%s}{%s}", color, x)
+  } else if (knitr::is_html_output()) {
+    sprintf("<span style='color: %s;'>%s</span>", color,
+      x)
+  } else x
+}
+```
+
+# Topics
+
+* What is Analysis of variance?
+
+* One-way ANOVA and non-parametric alternative
+
+* Multiple comparisons
+
+* Block designs
+
+* Two-way ANOVA and interactions
+
+* Some extensions
+
+* Doing ANOVA using R and GraphPadPrism
+
+---
+class: inverse, center, middle
+
+# What is Analysis of variance?
+
+---
+# What is Analysis of variance?
+
+* ANOVA is a statistical technique to
+  + investigate the dependence of a quantitative variable Y on one or more 
+    categorical variables (factors)
+  + to estimate and compare means of $Y$ for subgroups defined by the factors
+
+* Usual assumption: The $Y$’s follow normal distributions (they need not have 
+  all the same parameters)
+  + A considerable part of theoretical results in ANOVA is still valid under 
+  weaker assumptions.
+
+---
+# Development of ANOVA
+
+.pull-left[
+A lot of early ANOVA theory was developed in the early 20th century in the context of agricultural experiments by R. A. Fisher and colleagues – hence some of the terminology.
+]
+
+.pull-right[
+```{r Development_Fisher, echo=FALSE, eval=TRUE, out.width = "40%", fig.pos="h", fig.cap = paste0("Fig. ", fig.count, ": R. A. Fisher"), fig.align = "center"}
+include_graphics(path = "https://rss.onlinelibrary.wiley.com/cms/asset/9ec91b71-2007-4609-b6a0-f88abac4e39b/sign619-gra-0001-m.jpg")
+fig.count <- fig.count + 1
+```
+]
+
+```{r Development_Rothamstead, echo=FALSE, eval=TRUE, out.width = "100%", fig.pos="h", fig.cap = paste0("Fig. ", fig.count, ": Rothamstead experimental station"), fig.align = "center"}
+include_graphics(path = "https://www.era.rothamsted.ac.uk/images/banners/Broadbalk-02.jpg")
+fig.count <- fig.count + 1
+```
+
+---
+# General ANOVA Setting
+## Comparisons more two or more means
+
+* Typically, investigator controls one or more independent variables
+  + Called factors (or treatment variables)
+  + Each factor contains two or more levels (groups, categories, classifications)
+  
+* Factors can be 
+  + Intrinsic properties of subjects, e. g. type of soil, sex, genetics
+  + Treatments applied intentionally, e. g. application of fertilizer, 
+    treatment with a drug, exposure to carcinogen
+  
+* Observe effects on the dependent variable
+  + Response to levels of independent variable
+
+* Experimental design: the plan used to collect the data
+  + How to allocate treatment to individuals
+  + How to select individuals for observational studies
+
+---
+# t-test re-visited
+
+* ANOVA can be considered a generalization of the two-sample t-test
+
+* Therefore: Let's have a further look at the t-test
+
+* t-test: Compare two treatments with respect to a normally distributed outcome variable
+  + Assume equal variances in both treatment groups 
+  + Treatment 1: $Y_{11}, \ldots, Y_{1n_1} \sim \mathcal{N}(\mu_1,\,\sigma^{2})$
+  + Treatment 2: $Y_{21}, \ldots, Y_{2n_2} \sim \mathcal{N}(\mu_2,\,\sigma^{2})$
+
+* Test problem:
+  + Null hypothesis: $H_0: \mu_1 = \mu_2$
+  + Alternative hypothesis: $H_1: \mu_1 \ne \mu_2$
+
+---
+# t-test re-visited
+## test statistic
+
+$$t = \sqrt{\frac{n_1 \cdot n_2}{n_1 + n_2}} \cdot \frac{\bar{Y}_{1 \cdot}-\bar{Y}_{2 \cdot}}{\sqrt{\frac{1}{n_1+n_2-2} \sum_{i=1}^2 \sum_{j=1}^{n_i}\left(Y_{i j}-\bar{Y}_{i \cdot}\right)^2}}$$
+* We relate the difference **between** groups to the variation **within** groups:
+  + Numerator: difference **between** group means $= \bar{Y}_{1 \cdot}-\bar{Y}_{2 \cdot}$
+  + Denominator: Variation **within** groups
+  $= {\sqrt{\frac{1}{n_1+n_2-2} \sum_{i=1}^2 \sum_{j=1}^{n_i}\left(Y_{i j}-\bar{Y}_{i \cdot}\right)^2}}$
+
+* Aim: extend this test to more than two groups 
+
+* We have to modify the measure for differences between group means (numerator)
+
+```{r Simulate1, include=TRUE, echo = FALSE}
+# Simulate normally distributed values to demonstrate partitoning of sums of squares
+set.seed(123456)
+n.groups <- 4
+n.obspergroup <- 10
+
+group <- sort(rep((1:n.groups), n.obspergroup))
+Y <- group + rnorm(n.groups * n.obspergroup, mean = 0, sd = 1)
+
+Y_mean <- tapply(Y, group, mean)
+Y_grand_mean <- mean(Y)
+
+aov.df <- data.frame(group = as.factor(group),
+                     Y = Y)
+```
+
+---
+layout: true
+# Comparing more than two groups
+---
+
+Simulated values in four groups
+.pull-left[
+```{r Plot1, include=TRUE, echo = FALSE, results = "asis"}
+#> fig.height = 5, fig.width = 5,  fig.align = "left"
+#> fig.cap = paste0("Fig. ", fig.count, ": Individual observations")
+p <- ggplot(aov.df, aes(x = group, y = Y)) +
+  geom_dotplot(binaxis = 'y', color = "#0092AC", fill = "#0092AC", dotsize = 1, stackdir = 'center')
+p
+
+fig.count <- fig.count + 1
+```
+]
+.pull-right[ 
+* `r colorize("Values", "#0092AC")`  $Y_{ij}$ in group $i$, $i = 1, \ldots, I$, $j = 1, \ldots, n_i$
+]
+---
+
+Simulated values in four groups
+.pull-left[
+```{r Plot2, include=TRUE, echo = FALSE, results = "asis"}
+#> fig.height = 5, fig.width = 5, fig.align = "left"
+#> fig.cap = paste0("Fig. ", fig.count, ": Individual observations and group means")
+p <- p + stat_summary(fun = mean, geom = "point", shape = 18, size = 5, color = "red")
+p
+fig.count <- fig.count + 1
+```
+]
+.pull-right[ 
+* `r colorize("Values", "#0092AC")`  $Y_{ij}$ in group $i$, $i = 1, \ldots, I$, $j = 1, \ldots, n_i$
+
+* `r colorize("Group means", "red")` $\bar{Y_{i \cdot}} = \frac{1}{n_i}\sum_{j=1}^{n_i}{Y_{ij}}$
+]
+---
+
+Simulated values in four groups
+.pull-left[
+```{r Plot3, include=TRUE, echo = FALSE, results = "asis"}
+#> fig.height = 5, fig.width = 5, fig.align = "left"
+#> fig.cap = paste0("Fig. ", fig.count, ": Individual observations and group means and overall mean")
+p <- p + geom_hline(yintercept = Y_grand_mean, linetype = "solid", color = "darkblue")
+p
+fig.count <- fig.count + 1
+```
+]
+.pull-right[ 
+* `r colorize("Values", "#0092AC")`  $Y_{ij}$ in group $i$, $i = 1, \ldots, I$, $j = 1, \ldots, n_i$
+
+* `r colorize("Group means", "red")` $\bar{Y_{i \cdot}} = \frac{1}{n_i}\sum_{j=1}^{n_i}{Y_{ij}}$
+
+* `r colorize("Overall mean", "darkblue")`  $\bar{Y_{\cdot \cdot}} = \frac{1}{I}\sum_{i=1}^{I}{Y_{i \cdot}}$ as common reference
+]
+---
+
+* Total Variation about the overall mean can be partitioned into
+  + Variation of the individual values about their group means and
+  + Variation of the group means about the overall mean
+  
+* So the sources of variation are analysed, hence the term **Analysis of variance** (ANOVA).
+
+* Sources of variation (or variance) are compared.
+
+* If all groups have equal means, there will be little variation of group means
+  about the overall mean.
+---
+
+layout: false
+# General notation
+* $I$ treatment groups
+
+* Number of observations in group $i, (i = 1, \ldots, I)$: $n_i$
+
+* Total number of observations: $N = \sum_{i=1}^I n_i$
+
+* Assume equal variance $\sigma^2$ in all treatment groups 
+
+* Assume observations in group $i$ are normally distributed with 
+  $Y_{i1}, \ldots, Y_{in_i} \sim \mathcal{N}(\mu_i,\,\sigma^{2})$
+  
+* Test problem
+  + Null hypothesis: $H_0: \mu_1 = \mu_2 = \cdots = \mu_I$
+  + Alternative hypothesis: $H_1: \mu_i \ne \mu_j$ for at least one pair $i, j$
+
+---
+# Finding a test statistic for differences between more than two group means 
+* The variation **within** groups can be expressed as pooled variance, similarly 
+  to the t-test:
+  
+$$\frac{1}{N-I}\sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{i \cdot}} \right)^2$$  
+* Replace difference **between** group means by variance of group means about 
+  the overall mean (weighted by the group size)
+  
+$$\frac{1}{I-1}\sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2 =\frac{1}{I-1}\sum_{i=1}^{I} n_i \left( \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2$$   
+* This leads to the test statistic for comparing $I$ groups:
+
+$$F = \frac{\frac{1}{I-1}\sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2}{\frac{1}{N-I}\sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{i \cdot}} \right)^2}$$
+---
+# How is the t-test statistic related to F?
+* For the special case of two groups it holds that
+  $$F = t^2$$
+
+* For the denominator this is quite easy to see:
+  + for $I = 2$ and $N = \sum_{i=1}^I n_i = n_1 + n_2$, the denominator of $F$ is 
+  given by 
+  $$\frac{1}{n_1 + n_2}\sum_{i=1}^{2}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{i \cdot}} \right)^2$$
+  which is the square of the denominator of $t$
+  
+* For the numerator we need ab bit of calculation ...  
+
+---
+# How is the t-test statistic related to F?
+* Note that $n_1 \bar{Y_{1 \cdot}} + n_2 \bar{Y_{2 \cdot}} = \left( n_1 + n_2 \right) \bar{Y_{\cdot \cdot}}$ and 
+$\bar{Y_{\cdot \cdot}} = \frac{n_1 \bar{Y_{1 \cdot}} + n_2 \bar{Y_{2 \cdot}}}{n_1 + n_2}$
+
+
+* So the numerator of $F$ is given by
+$$n_1\left( \bar{Y_{1 \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2 + 
+  n_2\left( \bar{Y_{2 \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2 = \\
+  n_1\left( \bar{Y_{1 \cdot}} - \frac{n_1 \bar{Y_{1 \cdot}} + n_2 \bar{Y_{2 \cdot}}}{n_1 + n_2} \right)^2 + 
+  n_2\left( \bar{Y_{2 \cdot}} - \frac{n_1 \bar{Y_{1 \cdot}} + n_2 \bar{Y_{2 \cdot}}}{n_1 + n_2} \right)^2 = \\
+  n_1\left( \frac{\left( n_1 + n_2 \right) \bar{Y_{1 \cdot}} - n_1 \bar{Y_{1 \cdot}} - n_2\bar{Y_{2 \cdot}}}{n_1 + n_2}  \right)^2 + 
+  n_2\left( \frac{\left( n_1 + n_2 \right) \bar{Y_{2 \cdot}} - n_1 \bar{Y_{1 \cdot}} - n_2\bar{Y_{2 \cdot}}}{n_1 + n_2}  \right)^2 = \\
+  n_1\left( \frac{n_2 \left( \bar{Y_{1 \cdot}} - \bar{Y_{2\cdot}} \right)}{n_1 + n_2}  \right)^2 +
+  n_2\left( \frac{n_1 \left( \bar{Y_{2 \cdot}} - \bar{Y_{1\cdot}} \right)}{n_1 + n_2}  \right)^2 =\\
+  \frac{n_1 n_2 \left( \bar{Y_{1 \cdot}} - \bar{Y_{2\cdot}} \right)^2}{\left( n_1 + n_2 \right)^2}\left( n_1 + n_2 \right) = 
+  \frac{n_1 n_2 \left( \bar{Y_{1 \cdot}} - \bar{Y_{2\cdot}} \right)^2}{\left( n_1 + n_2 \right)}$$
+which is the square of the numerator of $t$.
+
+---
+# How is the t-test statistic related to F?
+* So, the F statistic can be considered a generalization of the t statistic 
+  for more than two groups.
+  
+* However, we loose the information about the direction of the difference.
+
+---
+class: inverse, center, middle
+
+# One-way ANOVA
+
+---
+# One-way ANOVA
+* What we have looked at so far amounts to one-way analysis of variance
+
+* "One-way" - we only have one independent factor
+
+* Two sources of variation:
+  + that due to treatment or independent variable
+      - captured by the sum of squares between groups
+      - describes the variation of the group mean about the overall mean
+      
+  + that unexplained by treatment
+      - captured by the sum of squares within groups
+      - describes the variation of observed values about the group means
+      - serves to estimate the “error” variance.
+
+---
+# Notation: sums of squares
+* Sum of squares between groups:
+  $$SS_{\text{between}} = SS_{\text{treatment}} = \sum_{i=1}^{I}{n_i}\left( \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2$$  
+  
+* Sum of squares within groups:
+  $$SS_{\text{within}} = SS_{\text{error}} = \sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{i \cdot}} \right)^2$$ 
+  
+* Total sum of squares:
+  $$SS_{\text{total}} = \sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{\cdot \cdot}} \right)^2$$
+  
+* Partitioning
+$$SS_{\text{total}} =  SS_{\text{treatment}} + SS_{\text{error}}$$
+  
+---
+# Notation: sums of squares
+## Mean squares
+
+* Mean squares between groups:
+  $$MS_{\text{between}} = MS_{\text{treatment}} = \frac{1}{I-1}\sum_{i=1}^{I}{n_i}\left( \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2$$  
+  
+* Mean squares within groups:
+  $$MS_{\text{within}} = MS_{\text{error}} =\frac{1}{N-I}\sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{i \cdot}} \right)^2$$ 
+
+---
+# Parameterisation
+
+* The group mean $\mu_i$ can be thought of as consisting of
+  + overall mean $\mu$ and
+  + specific effect $\alpha_i$ of treatment $i$
+  + this leads to the model equations (similarity to linear regression, more: next week)
+  $$Y_{ij} = \mu + \alpha_i + e_{ij} \quad \textrm{with} \quad e_{ij} \sim \mathcal{N}(0,\sigma^{2})$$
+    Hence the expectation of $Y_{ij}$ is
+  $$E\left( Y_{ij} \right) = \mu + \alpha_i \quad \textrm{for all } i \textrm{ and } j, \textrm{ subject to } \sum_{i=1}^I \alpha_i= 0$$
+  
+* Constraints on the $\alpha_i$ are necessary because of an additionial parameter
+
+* Constraint $\sum_{i=1}^I \alpha_i= 0$ is referred to as *effect coding*.
+
+* Other common constraints: $\alpha_1 = 0$ or $\alpha_I = 0$. These are referred 
+to as *reference coding*.
+
+---
+# Estimating and comparing means
+* ANOVA is applied to compare means. 
+
+* Means and model parameters also have to be estimated.
+
+* Estimate overall mean (grand mean): $\hat{\mu} = \bar{Y_{\cdot \cdot}} = \frac{1}{N} \sum_{i=1}^{I}\sum_{j=1}^{n_i} Y_{ij}$
+
+* Estimate mean in group $i$: $\hat{\mu_i} = \bar{Y_{i \cdot}} = \frac{1}{n_i} \sum_{j=1}^{n_i} Y_{ij}$
+
+* Estimate effect of treatment $i$, i.e. difference between overall mean and group mean in group $i$:
+  $\hat{\alpha_i} = \hat{\mu_i} - \hat{\mu} = \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}}$
+  
+* Note:  
+  If the chosen constraint is $\alpha_1 = 0$ (reference group parameterisation),
+  we have $E\left( Y_{1j} \right) = \mu$ and hence estimate  
+  $\hat{\mu} = \bar{Y_{1 \cdot}}$ and $\hat{\alpha_i} = \bar{Y_{i \cdot}} - \bar{Y_{1 \cdot}}$ for $i \ne 1$
+
+---
+# Estimating means in simulated data
+Simulated values in four groups
+
+.pull-left[
+```{r Plot3repeat1, include=TRUE, echo = FALSE, results = "asis"}
+#> fig.height = 5, fig.width = 5,  fig.align = "left"
+#> fig.cap = paste0("Fig. ", fig.count, ": Individual observations and group means and overall mean")
+p
+```
+]
+
+.pull-right[
+```{r table_sim, include=TRUE, echo = FALSE, results = "asis"}
+Y.df <- data.frame(matrix(Y, nrow = n.obspergroup, ncol = n.groups))
+names(Y.df) <- paste0("Group ", (1:n.groups))
+Y_with_means.df <- rbind(Y.df, Y_mean)
+row.names(Y_with_means.df) <- c(as.character(1:n.obspergroup), "Mean")
+
+kable(Y_with_means.df, 
+      format = 'html', 
+      row.names = TRUE,
+      col.names = names(Y_with_means.df),
+      digits = 2,
+      caption = paste0("Table ", table.count, ": Simulated data"), 
+      align = "c") %>%
+  kable_styling(bootstrap_options = "striped", font_size = 15, full_width = TRUE)
+table.count <- table.count + 1 
+```
+
+Overall mean $\bar{Y_{\cdot \cdot}} =$ `r round(Y_grand_mean, 2)`
+]
+
+---
+# Estimating group effects in simulated data
+Simulated values in four groups
+
+.pull-left[
+```{r Plot3repeat2, include=TRUE, echo = FALSE, results = "asis", }
+#> fig.height = 5, fig.width = 5, fig.align = "left" 
+#> fig.cap = paste0("Fig. ", fig.count, ": Individual observations, group means, overall mean and effect estimates")
+Y_mean.df <- data.frame(group = (1:n.groups),
+                        Y_mean = Y_mean)
+p1 <- ggplot(aov.df, aes(x = group, y = Y)) +
+  geom_dotplot(binaxis = 'y', color = "#0092AC", fill = "#0092AC", alpha = 0.33, dotsize = 1, stackdir = 'center')
+p1 <- p1 + geom_hline(yintercept = Y_grand_mean, linetype = "solid", color = "darkblue")
+p1 <- p1 + 
+  geom_segment(data = Y_mean.df, aes(x = group, xend = group, y = Y_grand_mean, yend = Y_mean), color = "darkblue", linewidth = 0.8) +
+  geom_point(data = Y_mean.df, aes(x = group, y = Y_mean), shape = 18, size = 5, color = "red")
+p1
+
+fig.count <- fig.count + 1
+```
+]
+
+.pull-right[
+```{r Effect_estimates, include=TRUE, echo = FALSE, results = "asis"}
+alpha_hat <- Y_mean - Y_grand_mean
+alpha_labels <- paste0("$\\hat{\\alpha_",(1:n.groups), "}$ = ")
+alpha.df <- data.frame(alpha_labels, alpha_hat)
+
+kable(alpha.df, 
+      format = 'html', 
+      row.names = FALSE,
+      col.names = c("Parameter", "Estimate"),
+      digits = 2,
+      caption = paste0("Table ", table.count, ": Parameter estimates"), 
+      align = "c") %>%
+  kable_styling(bootstrap_options = "striped", font_size = 15, full_width = TRUE)
+
+table.count <- table.count + 1 
+```
+]
+
+---
+# ANOVA table
+The results of an ANOVA are usually presented in a table
+
+| Source         | df    | SS    | MS | E(MS) |
+|----------------|-------|-------|----|-------|
+| Between groups | $I-1$ | $SS_{\text{treatment}} = \\ \sum_{i=1}^{I}{n_i}\left( \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2$ | $MS_{\text{treatment}} = \\ \frac{1}{I-1}SS_{\text{treatment}}$ | $\sigma^2 + \frac{1}{I-1} \sum_{i=1}^ I n_i \alpha_i^2$|
+|Within groups   | $N-I$ | $SS_{\text{error}} = \\ \sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{i \cdot}} \right)^2$ | $MS_{\text{error}} = \\ \frac{1}{N-I}SS_{\text{error}}$ | $\sigma^2$ |
+|Total           | $N-1$ | $SS_{\text{total}} = \\ \sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{\cdot \cdot}} \right)^2$
+  
+
+df = degrees of freedom, MS = mean squares, E(MS) = expectation of mean squares
+
+---
+# F-test in ANOVA
+* Under $H_0$ the ratio of the between and within mean squares follows an 
+  F-distribution with I-1 and N-I degrees of freedom.
+* The F-Test is usually also included in the ANOVA table.  
+
+
+| Source         | df    | SS    | MS | F |
+|----------------|-------|-------|----|-------|
+| Between groups | $I-1$ |  $SS_{\text{treatment}} = \\ \sum_{i=1}^{I}{n_i}\left( \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2$  | $MS_{\text{treatment}} = \\ \frac{1}{I-1}SS_{\text{treatment}}$ | $F = \frac{MS_{\text{treatment}}}{MS_{\text{error}}}$|
+|Within groups   | $N-I$ | $SS_{\text{error}} = \\ \sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{i \cdot}} \right)^2$ | $MS_{\text{error}} = \\ \frac{1}{N-I}SS_{\text{error}}$ | |
+|Total           | $N-1$ | $SS_{\text{total}} = \\ \sum_{i=1}^{I}\sum_{j=1}^{n_i}\left( Y_{ij} - \bar{Y_{\cdot \cdot}} \right)^2$ | | |
+
+---
+# Perform ANOVA with R - function lm
+* Several packages provide functions for ANOVA
+
+* E. g. use function `lm` from the `stats` package. Syntax:  
+  `lm(formula, data, subset, weights, na.action,
+   method = "qr", model = TRUE, x = FALSE, y = FALSE, qr = TRUE,
+   singular.ok = TRUE, contrasts = NULL, offset, ...)`
+   
+    + Note: the group variables must be of type factor! Otherwise a linear 
+      regression model is fitted.
+    + Contrasts can be used 
+        - to obtain tests for (pairwise) comparisons between groups
+        - to obtain estimates of effects from different parameterisations
+
+    + Also gives parameter estimates
+        - using reference coding (default)
+        - default: first groups as reference group
+        - to obtain estimates for effects $\alpha_i$ use option 
+        `contrasts = list(group = contr.sum(n.groups))`
+  
+---
+# ANOVA results from function lm
+```{r ANOVA_one_way_lm, include=TRUE, highlight.output=c((11:14),20)}
+my.lm <- lm(Y ~ group, data = aov.df)
+summary(my.lm)
+```
+
+---
+# ANOVA results from function lm
+To obtain an ANOVA table in "standard" format call function `anova` from package
+`stats` and apply it to results from call to `lm`:  
+
+```{r ANOVA_one_way_lm_table, include=TRUE}
+anova(my.lm)
+```
+  
+Residuals $= SS_\text{within} = SS_\text{error}$
+
+---
+# ANOVA using function lm with effect coding
+* To obtain estimates for $\alpha_i$ from effect coding, specify contrasts.
+
+* R has a function to generate these contrasts: `contr.sum(n.groups)`
+
+* `my.lm2 <-  lm(Y ~ group, data = aov.df,`  
+  `contrasts = list(group = contr.sum(n.groups)))`
+  
+* This gives  
+  Intercept $=\hat{\mu}$  
+  group1 $=\hat{\alpha_1}$  
+  group2 $=\hat{\alpha_2}$  
+  group3 $=\hat{\alpha_3}$  
+  $\hat{\alpha_4} = -\hat{\alpha_1} - \hat{\alpha_2} - \hat{\alpha_3}$
+
+---
+# ANOVA results from function lm with effect coding
+```{r ANOVA_one_way_lm_effect, include=TRUE, echo = FALSE, highlight.output=(11:14)}
+my.lm2 <-  lm(Y ~ group, data = aov.df, 
+   contrasts = list(group = contr.sum(n.groups)))
+summary(my.lm2)
+
+```
+
+---
+
+class: inverse, center, middle
+
+# Non-parametric alternative
+
+---
+# Alternatives for non-normal data
+* Normal distribution of observations in groups is prerequisite for ANOVA.
+  + This should be checked.
+  + Some methods for checking will be covered in the exercises.
+
+* If data are not normally distributed
+  + Transform data such that transformed data are normally distributed, 
+  e. g. taking log 
+  + Use a non-parametric test, based on ranks
+  
+* Wilcoxon-Mann-Whitney test as non-parametric alterative to t-test
+
+* Test based on ranks for more than two groups?
+
+---
+# Kruskal-Wallis test
+
+* Use ranks $R_{ij} = \text{rank}\left( Y_{ij}\right)$ instead of the original 
+  values
+
+* The test statistic of the Kruskal-Wallist test is
+  $$H=(N-1) \frac{\sum_{i=1}^I n_i\left(\bar{R}_{i \cdot}-\bar{R}_{\cdot \cdot}\right)^2}{\sum_{i=1}^I \sum_{j=1}^{n_i}\left(R_{i j}-\bar{R_{\cdot \cdot}} \right)^2} \, \text{with}$$
+  + $\bar{R}_{i \cdot}$ mean of ranks in group $i$
+  
+  + $\bar{R}_{\cdot \cdot} = \frac{1}{2}\left( N+1 \right)$ overall mean of ranks
+  
+* If there are no ties, the test statistic simplifies to
+$$H=\frac{12}{N(N+1)} \sum_{i=1}^I n_i \bar{R}_{i \cdot}^2-3(N+1)$$
+
+* Under $H_0$, the test statistic follows (approximately) as 
+  $\chi^2$-distribution with $I-1$ degrees of freedom.
+
+---
+# Perform Kruskal-Wallis test in R
+* Function `kruskal.test` can be used. It can be called in different ways
+
+* Syntax: `kruskal.test(x, g, ...)` or `kruskal.test(formula, data, subset, na.action, ...)`
+
+* For simulated example `kruskal.test(Y ~ as.factor(group), data = Y.df)`
+
+```{r Kruskal_Wallis, include=TRUE, echo = FALSE}
+my.KW <- kruskal.test(Y ~ group, data = aov.df)
+print(my.KW)
+```
+
+---
+class: inverse, center, middle
+
+# Multiple comparisons or post-hoc tests
+
+---
+# Multiple comparisons or post-hoc tests
+* When the global null hypothesis of equal cell means in ANOVA is rejected by 
+  the F-test, further inference might be desired
+  + Compare each treatment group with each other
+  + Compare all treatments with control
+  
+* Multiple comparison procedures (MCPs) give more detailed information about the
+  differences among the means
+  
+* F-Test ensures control of experiment-wise error rate under the complete null 
+  hypothesis (i. e. all groups have identical means)
+  
+* Various suggestions to control maximum experiment-wise error rate under **any** 
+  complete or partial null hypothesis, i. e. any subset of  groups have 
+  identical means
+  
+* Post-hoc test should only be performed if the F test gives a significant 
+  result.
+
+---
+# Multiple comparisons or post-hoc tests
+* Typically are similar to a two sample t-test
+
+* Bonferroni correction  
+  + Pair-wise comparisons, adjust significance level by Bonferroni method
+  + Advantage: very simple
+  + Drawback: can be very conservative
+  
+* Tukey-Kramer test (or Tukey’s honest significant difference)
+  + All pair-wise comparisons
+  + Generally good choice if all pairs of means are to be compared
+  
+* Dunnett test 
+  + Each treatment compared to a control
+  + No comparison between treatments
+
+---
+# Multiple comparisons or post-hoc tests
+* Pairwise comparison between groups $i$ and $j$ based on test static $t_{ij}$ with  
+  $t_{ij}= \frac{\bar{Y_{i \cdot}} - \bar{Y_{j \cdot}}}{\hat{\sigma}}$ 
+  where $\hat{\sigma}^2$ is the estimated variance of $\bar{Y_{i \cdot}} - \bar{Y_{j \cdot}}$
+  
+* The null hypothesis $H_0: \mu_i = \mu_j$ is rejected if $\left|(t_{ij})\right| > c(\alpha)$
+
+  + Bonferroni: 
+      - perform $c$ pairwise comparisons
+      - $c(\alpha) = t_{n_i + n_j - 2, 1 - \frac{\alpha^*}{2}}$ with 
+        $\alpha^* = \frac{\alpha}{c}$,  
+        i. e. use significance level  $\alpha^*$ instead of $\alpha$
+
+  + Tukey-Kramer test (Tukey honest significant difference)
+      - perform all pairwise comparisons of $k$ means
+      - $c(\alpha) = q(\alpha; k; \nu)/\sqrt{2}$ where $q(\alpha; k; \nu)$ is the level
+        $\alpha$ critical value of a studentized range distribution of $k$ 
+          independent normal random variables with $\nu$ degrees of freedom. 
+      - sample sizes should be (at least) approximately equal
+
+---
+# Multiple comparisons or post-hoc tests
+* Pairwise comparison between groups $i$ and $j$ based on test static $t_{ij}$ with  
+  $t_{ij}= \frac{\bar{Y_i \cdot} - \bar{Y_j \cdot}}{\hat{\sigma}}$ 
+  where $\hat{\sigma}^2$ is the estimated variance of $\bar{Y_i \cdot} - \bar{Y_j \cdot}$
+  
+* The null hypothesis $H_0: \mu_i = \mu_j$ is rejected if $\left|(t_{ij})\right| > c(\alpha)$
+  + Dunnett test
+      - Compare all treatments to one common control, reject $H_0: \mu_i = \mu_0$ 
+        where $\mu_0$ is the means of the controls if
+      - $\left|t_{i0}\right| > d\left(\alpha ; k, \nu, \rho_1, \ldots, \rho_{k-1}\right)$
+        where $d\left(\alpha ; k, \nu, \rho_1, \ldots, \rho_{k-1}\right)$ is the
+        critical value of the "many-to-one" statistic for $k$ means with $\nu$ 
+        degrees of freedom and correlations 
+        $\rho_1, \ldots, \rho_{k-1}, \rho_i=n_i /\left(n_0+n_i\right)$
+
+---
+# Multiple comparisons in R 
+Tukey test for simulated data
+```{r Tukey_lm, include=TRUE, results = "asis"}
+tukey <- tukey_hsd(my.lm)
+
+kable(tukey, 
+      format = 'html', digits = 3, align = "c",
+      row.names = FALSE, col.names = names(tukey),
+      caption = paste0("Table ", table.count, 
+                       ": Results of Tukey test")) %>%
+  kable_styling(bootstrap_options = "striped", 
+                font_size = 15, full_width = TRUE, position = "left")
+```
+
+```{r increment_table_count, include = TRUE, echo = FALSE}
+table.count <- table.count + 1 
+```
+
+---
+# Multiple comparisons in R 
+Dunnett test for simulated data - group 1 as reference
+```{r Dunnett_lm, include=TRUE, results = "asis"}
+Dunnett <- DunnettTest(Y ~ group, data = aov.df)
+
+kable(Dunnett$`1`,
+      format = 'html',
+      row.names = TRUE, col.names = colnames(Dunnett$`1`),
+      caption = paste0("Table ", table.count,
+                       ": Results of Dunnett test"),
+      digits = 3, align = "c") %>%
+  kable_styling(bootstrap_options = "striped",
+                font_size = 15, full_width = TRUE, position = "left")
+
+```
+---
+# Multiple comparisons or post hoc tests 
+## Non-parametric case
+* If the Kruskall-Wallis test gives a significant result, there are    also methods for further comparisons
+
+* Bonferroni-method could be applied with pairwise comparison using
+  the Mann-Whitney test
+  
+* For all pairwise comparisons: Dunn’s test 
+
+---
+class: inverse, center, middle
+
+# Simple block experiment
+
+---
+# Simple block experiment
+Assumptions
+* $i = 1, \ldots, I$ treatments, $j = 1, \ldots, j$ blocks
+
+* Each treatment is administered to each block **exactly once**. 
+
+* Data are normally distributed with common variance
+
+* Observations are independent
+
+* Let $Y_{ij}$ observation in block $j$ with treatment $i$
+
+* $Y_{ij} = \mu + \alpha_i + \beta_j + e_{ij}$ with $e_{ij} \sim \mathcal{N}(0,\,\sigma^{2})$, i. e. 
+$Y_{ij} \sim \mathcal{N}(\mu + \alpha_i + \beta_j,\,\sigma^{2})$ subject to constraints  
+$\sum_{i=1}^I \alpha_i = 0$ and $\sum_{j=1}^J \beta_j = 0$
+
+* $\alpha_i$ treatment effects
+
+* $\beta_j$ block effects
+
+
+---
+# When and how to use simple block experiments?
+
+* When experimental units or subjects are not homogeneous
+
+* Introduce blocking factor such that experimental units are homogenous within each block
+  + experimental conditions vary
+      - temperature differs between days - day (or temperature) as blocking factor
+      - animals from one litter or from one cage - litter or cage as blocking factor
+      
+* Corresponds to paired comparisons or stratification
+
+* Main interest is in treatments, but effects of blocks can be estimated
+
+* Randomise treatments such that each treatment is applied exactly once in each 
+  block $\rightarrow$ randomised block design
+  + ANOVA as in simple block experiment
+  
+---
+# Means and effect estimates in simple block experiment
+| Description                        | Formula |
+| -----------------------------------|---------|
+| Mean over blocks for treatment $i$ | $\bar{Y_{i \cdot}} = \frac{1}{J} \sum_{j=1}^J Y_{ij}$ |
+| Mean over treatments for block $j$ | $\bar{Y_{\cdot j}} = \frac{1}{I} \sum_{i=1}^I Y_{ij}$ |
+| Overall mean                       | $\hat{\mu} = \bar{Y_{\cdot \cdot}} = \frac{1}{IJ} \sum_{i=1}^I\sum_{j=1}^J Y_{ij}$ |
+| Estimate treatment effect in group $i$ | $\hat{\alpha_i} = \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}}$|
+| Estimate block effect in block $j$ | $\hat{\beta_j} = \bar{Y_{\cdot j}} - \bar{Y_{\cdot \cdot}}$|
+
+---
+# Hypotheses in simple block experiment
+
+* Treatment effects
+  + $H_0: \alpha_1 = \alpha_2 = \cdots = \alpha_I = 0$
+  + $H_1: \alpha_i \ne 0$ for at least one $i$
+  
+* Block effects
+  + $H_0: \beta_1 = \beta_2 = \cdots = \beta_J = 0$
+  + $H_1: \beta_j \ne 0$ for at least one $j$
+
+---
+# ANOVA Table for simple block experiment
+
+| Source         | df    | SS    | MS | E(MS) |
+|----------------|-------|-------|----|-------|
+| Between treatments | $\small{I-1}$ | $SS_{\text{A}} = \\ J\sum_{i=1}^{I}\left( \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2$ | $MS_{\text{A}} = \\ \frac{1}{I-1}SS_{\text{A}}$ | $\sigma^2 + \\ \frac{J}{I-1} \sum_{i=1}^ I \alpha_i^2$|
+| Between blocks | $\small{J-1}$ | $SS_{\text{B}} = \\ I\sum_{j=1}^{J}\left( \bar{Y_{\cdot j}} - \bar{Y_{\cdot \cdot}} \right)^2$ | $MS_{\text{B}} = \\ \frac{1}{J-1}SS_{\text{B}}$ | $\sigma^2 + \\ \frac{I}{J-1} \sum_{j=1}^ J \beta_j^2$|
+|Error           | $\small{(I-1)\cdot \\ (J-1)}$ | $SS_{\text{e}} =  \sum_{i=1}^{I}\sum_{j=1}^{J} \\ \left( Y_{ij} - \bar{Y_{i \cdot}} - \bar{Y_{\cdot j}}  + \bar{Y_{\cdot \cdot}}\right)^2$ | $MS_{\text{e}} = \\ \frac{1}{(I-1)(J-1)}SS_{\text{e}}$ | $\sigma^2$ |
+|Total           | $\small{IJ-1}$ | $SS_{\text{total}} = \\ \sum_{i=1}^{I}\sum_{j=1}^{J}\left( Y_{ij} - \bar{Y_{\cdot \cdot}} \right)^2$ |  |  | |
+  
+df = degrees of freedom, MS = mean squares, E(MS) = expectation of mean squares
+
+---
+# F-test in simple block experiment
+
+| Source         | df    | SS    | MS | F |
+|----------------|-------|-------|----|-------|
+| Between treatments | $\small{I-1}$ | $SS_{\text{A}} = \\ J\sum_{i=1}^{I}\left( \bar{Y_{i \cdot}} - \bar{Y_{\cdot \cdot}} \right)^2$ | $MS_{\text{A}} = \\ \frac{1}{I-1}SS_{\text{A}}$ | $F_A=\frac{MS_A}{MS_e}$|
+| Between blocks | $\small{J-1}$ | $SS_{\text{B}} = \\ I\sum_{j=1}^{J}\left( \bar{Y_{\cdot j}} - \bar{Y_{\cdot \cdot}} \right)^2$ | $MS_{\text{B}} = \\ \frac{1}{J-1}SS_{\text{B}}$ | $F_B=\frac{MS_B}{MS_e}$|
+|Error           | $\small{(I-1)\cdot \\ (J-1)}$ | $SS_{\text{e}} =  \sum_{i=1}^{I} \sum_{j=1}^{J}\\ \left( Y_{ij} - \bar{Y_{i \cdot}} - \bar{Y_{\cdot j}}  + \bar{Y_{\cdot \cdot}}\right)^2$ | $MS_{\text{e}} = \\ \frac{1}{(I-1)(J-1)}SS_{\text{e}}$ |  |
+|Total           | $\small{IJ-1}$ | $SS_{\text{total}} = \\ \sum_{i=1}^{I}\sum_{j=1}^{J}\left( Y_{ij} - \bar{Y_{\cdot \cdot}} \right)^2$ |  |  | |
+  
+Under the treatment null hypothesis, the ratio of the between treatments and 
+error mean squares follows an F-distribution with $I-1$ and $(I-1)(J-1)$ 
+degrees of freedom. Similar argument for testing the block null hypothesis.
+
+---
+# Simulate data from block experiment
+```{r Simulate2, include=TRUE, echo = FALSE, results = "asis"}
+#> fig.height = 5, fig.width = 5,  fig.align = "left"
+#> fig.cap = paste0("Fig. ", fig.count, ":Simulated data from block experiment")
+
+# Simulate data for a simple block experiment
+set.seed(987654)
+n.treatments <- 3
+n.blocks <- 15
+
+treatment <- sort(rep((1:n.treatments), n.blocks))
+block <- rep((1:n.blocks), n.treatments)
+block_level <- rep(sample(1:n.blocks), n.treatments)
+
+Yb <- treatment + 0.25*block_level + rnorm(n.treatments * n.blocks, mean = 0, sd = 1)
+
+Yb_mean_treatment <- tapply(Yb, treatment, mean)
+Yb_mean_block <- tapply(Yb, block, mean)
+Yb_grand_mean <- mean(Yb)
+
+block.df <- data.frame(treatment = as.factor(treatment),
+                       block = as.factor(block),
+                       Yb = Yb)
+```
+
+```{r plot_block, include=TRUE, echo = FALSE, results = "asis", fig.cap = paste0("Fig. ", fig.count, ": Block experiment with ", n.treatments, " treatments applied to ",  n.blocks, " blocks. Data by treatment and block"), fig.height = 4, fig.width = 6, fig.align = "left", out.width = "80%"}
+
+Yb_mean_treatment.df <- data.frame(treatment = (1:n.treatments),
+                         Yb_mean_treatment = Yb_mean_treatment)
+
+p <- ggplot(block.df, aes(x = as.numeric(block), y = Yb, group = treatment, color = treatment,
+                          fill = treatment)) + 
+  labs(x = "Block") +
+  geom_point(aes(x = as.numeric(block), y = Yb, group = treatment, color = treatment,
+                          fill = treatment), size = 3)
+p <- p + geom_hline(data = Yb_mean_treatment.df, 
+                     aes(yintercept = Yb_mean_treatment, color = as.factor(treatment)),
+                     linetype = "dashed")
+p
+
+fig.count <- fig.count + 1
+```
+
+---
+# ANOVA in block design
+```{r block_lm, include=TRUE, echo = TRUE}
+my.lmb <- lm(Yb ~ treatment + block, data = block.df)
+anova(my.lmb)
+```
+
+---
+class: inverse, center, middle
+
+# Two-way anova
+
+---
+# Two-way ANVOA: Assumptions
+* The explanatory variables we are interested in, factors A and B, 
+  have $I$ and $J$ levels respectively
+  + Think of (A) genetic background (WT vs genetically modified) and (B) drug
+    treatment
+
+* Effect of factor B may differ between levels of A or vice versa:  
+  effect of factor A may differ between levels of B 
+  
+* There are $K$ replicates for each combination $i, j$
+  + Equal number of replicates (“balanced design”) is not necessary, but is 
+    assumed here for simplicity (and has nice statistical properties)
+
+* Data are normally distributed with common variance
+
+* Observations are independent
+
+---
+# Two-way ANVOA: Layout
+* Factor Treatment with 3 levels  
+* Factor Genotype with 2 levels
+
+```{r , echo=FALSE, eval=TRUE, out.width = "75%", fig.cap = paste0("Fig. ", fig.count, ": Two-way layout"), fig.align = "left"}
+
+include_graphics(path = "images/Two factor layout.png")
+fig.count <- fig.count + 1
+```
+
+---
+# Two-way ANVOA: model formulae
+Let $Y_{ijk}$ $k$-th replicate for level $i$ of factor (treatment) A and level
+  $j$ of factor (treatment) B
+  $$Y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha \beta)_{ij} + e_{ijk}$$ 
+  with $e_{ijk} \sim \mathcal{N} \left(0, \sigma^2 \right)$, i. e.  
+  $Y_{ijk} \sim \mathcal{N} \left( \mu + \alpha_i + \beta_j + (\alpha \beta)_{ij}, \sigma^2 \right)$ subject to constraints
+  + $\sum_{i=1}^I \alpha_i = 0$
+  + $\sum_{j=1}^J \beta_j = 0$
+  + $\sum_{i=1}^I (\alpha \beta)_{ij} = 0$ for all $j$
+  + $\sum_{j=1}^J (\alpha \beta)_{ij} = 0$ for all $i$
+
+  
+---
+# Means and effect estimates in two-way ANOVA
+| Description                        | Formula |
+| -----------------------------------|---------|
+| Overall mean | $\hat{\mu} = \bar{Y_{\cdot \cdot \cdot}} = \frac{1}{IJK}\sum_{i=1}^{I}\sum_{j=1}^{J}\sum_{k=1}^{K} Y_{ijk}$ |
+|Mean over all levels of B for $i$-th level of A | $\bar{Y_{i \cdot \cdot}} = \frac{1}{JK} \sum_{j=1}^{J}\sum_{k=1}^{K} Y_{ijk}$ |
+| Mean over all levels of A for $j$-th level of B | $\bar{Y_{\cdot j \cdot}} = \frac{1}{IK} \sum_{i=1}^{I}\sum_{k=1}^{K} Y_{ijk}$ |
+| Mean for $i$-th level of A and $j$-th level of B | $\bar{Y_{ij \cdot}} = \frac{1}{K}\sum_{k=1}^{K} Y_{ijk}$ |
+| Treatment effect for $i$-th level of A | $\hat{\alpha_i} = \bar{Y_{i \cdot \cdot}} - \bar{Y_{\cdot \cdot \cdot}}$ |
+|Treatment effect for $j$-th level of B | $\hat{\beta_j} = \bar{Y_{\cdot j \cdot}} - \bar{Y_{\cdot \cdot \cdot}}$ |
+|Interaction of A and B at $i$-th level of A and $j$-th level of B | $\hat{(\alpha \beta)_{ij}} = \bar{Y_{ij \cdot}} - \bar{Y_{i \cdot \cdot}} - \bar{Y_{\cdot j \cdot}} +  \bar{Y_{\cdot \cdot \cdot}}$ |
+
+---
+# Hypotheses in two-way ANOVA
+
+* Main effects of factor A
+  + $H_0: \alpha_1 = \alpha_2 = \cdots = \alpha_I = 0$
+  + $H_1: \alpha_i \ne 0$ for at least one $i$
+  
+* Main effects of factor B
+  + $H_0: \beta_1 = \beta_2 = \cdots = \beta_J = 0$
+  + $H_1: \beta_j \ne 0$ for at least one $j$
+
+* Interactions
+  + $H_0: (\alpha \beta)_{11} = (\alpha \beta)_{12} = \cdots= (\alpha \beta)_{IJ} = 0$
+  + $H_1: (\alpha \beta)_{ij} \ne 0$ for at least one pair $i, j$
+
+---
+# ANOVA table for two-way layout
+| Source         | df    | SS    | MS | E(MS) |
+|----------------|-------|-------|----|-------|
+| Main effect A | $I-1$ | $SS_{\text{A}} = \\ JK\sum_{i=1}^{I}\left( \bar{Y_{i \cdot \cdot}} - \bar{Y_{\cdot \cdot \cdot}} \right)^2$ | $MS_{\text{A}} = \\ \frac{1}{I-1}SS_{\text{A}}$ | $\sigma^2 + \\ \frac{JK}{I-1} \sum_{i=1}^ I \alpha_i^2$|
+| Main effect B | $J-1$ | $SS_{\text{B}} = \\ IK\sum_{j=1}^{J}\left( \bar{Y_{\cdot j \cdot}} - \bar{Y_{\cdot \cdot \cdot}} \right)^2$ | $MS_{\text{B}} = \\ \frac{1}{J-1}SS_{\text{B}}$ | $\sigma^2 + \\ \frac{IK}{J-1} \sum_{j=1}^ J \beta_j^2$|
+|AB inter- action | $(I-1)\cdot \\ (J-1)$ | $SS_{\text{AB}} = \\ K \sum_{i=1}^{I}\sum_{j=1}^{J}\left( Y_{ij \cdot} - \bar{Y_{i \cdot \cdot}} \\ - \bar{Y_{\cdot j \cdot}}  + \bar{Y_{\cdot \cdot \cdot}}\right)^2$ | $MS_{\text{AB}} = \\ \frac{1}{(I-1)(J-1)}SS_{\text{AB}}$ | $\sigma^2 + \\ \frac{K}{(I-1)(J-1)} \cdot \\ \sum_{i=1}^I\sum_{j=1}^J (\alpha \beta)_{ij}$ |
+| Error           | $IJ\\(K-1)$ | $SS_e =  \sum_{i=1}^I\sum_{j=1}^J\sum_{k=1}^K \\ \left (Y_{ijk} - Y_{\cdot \cdot \cdot} \right)^2$ | $MS_e = \\ \frac{}{IJ(K-1)}SS_e$ | $\sigma^2$ |
+|Total           | $IJK-1$ | $SS_{\text{total}} =  \sum_{i=1}^{I}\sum_{j=1}^{J}\sum_{k=1}^K$ | $\left( Y_{ijk} - \bar{Y_{\cdot \cdot \cdot}} \right)^2$ |  | |
+
+---
+# F-test in two-way layout
+
+| Source         | df    | SS    | MS | F |
+|----------------|-------|-------|----|-------|
+| Main effect A | $I-1$ | $SS_{\text{A}} = \\ JK\sum_{i=1}^{I}\left( \bar{Y_{i \cdot \cdot}} - \bar{Y_{\cdot \cdot \cdot}} \right)^2$ | $MS_{\text{A}} = \\ \frac{1}{I-1}SS_{\text{A}}$ | $F_A=\frac{MS_A}{MS_e}$ |
+| Main effect B | $J-1$ | $SS_{\text{B}} = \\ IK\sum_{j=1}^{J}\left( \bar{Y_{\cdot j \cdot}} - \bar{Y_{\cdot \cdot \cdot}} \right)^2$ | $MS_{\text{B}} = \\ \frac{1}{J-1}SS_{\text{B}}$ | $F_B=\frac{MS_B}{MS_e}$ |
+|AB inter- action | $(I-1)\cdot \\ (J-1)$ | $SS_{\text{AB}} = \\ K \sum_{i=1}^{I}\sum_{j=1}^{J}\left( Y_{ij \cdot} - \bar{Y_{i \cdot \cdot}} \\ - \bar{Y_{\cdot j \cdot}}  + \bar{Y_{\cdot \cdot \cdot}}\right)^2$ | $MS_{\text{AB}} = \\ \frac{1}{(I-1)(J-1)}SS_{\text{AB}}$ | $F_{AB}=\frac{MS_{AB}}{MS_e}$ |
+| Error           | $IJ \cdot \\(K-1)$ | $SS_e =  \sum_{i=1}^I\sum_{j=1}^J\sum_{k=1}^K \\ \left (Y_{ijk} - Y_{\cdot \cdot \cdot} \right)^2$ | $MS_e = \\ \frac{}{IJ(K-1)}SS_e$ |   |
+|Total           | $IJK-1$ | $SS_{\text{total}} =  \sum_{i=1}^{I}\sum_{j=1}^{J}\sum_{k=1}^K$ | $\left( Y_{ijk} - \bar{Y_{\cdot \cdot \cdot}} \right)^2$ |  | |
+
+---
+# Two-way layout example
+see exercises
+
+---
+class: inverse, center, middle
+
+# Extensions
+
+---
+# Higher order factorial models
+* More than two factors can be included in a model
+
+* Higher order interactions can be fitted, e.g. 3-way ANOVA
+
+$$Y_{ijkl} = \mu + \alpha_i + \beta_j + \gamma_k + (\alpha \beta)_{ij} + (\alpha \gamma)_{ik} + (\beta \gamma)_{jk} + (\alpha \beta \gamma)_{ijk} + e_{ijkl}$$
+
+* However, interpretation becomes difficult with more than three
+  factors.
+
+---
+# Variance inhomogeneity
+
+* Homogenous variance across cells is important for valid ANOVA
+  results
+  
+* If the homogeneity assumption is violated, a possible solution 
+  is to use Welch ANOVA
+  + Post-hoc test: Games-Howell test
+  
+* There are also more general linear models that allow different 
+  variances and correlated data
+  
+  + Such models typically need larger samples as there are more
+    parameters to estimate
+
+
+---
+# Hierarchical models and cluster structures
+
+* Nested (hierarchical) designs
+  + A factor C is said to be nested within the levels of A, if every level of C
+  appears with only a single level of A in the observation.
+    - Patients nested within a hospital 
+    - Students nested within a school  
+
+* Applications
+  + Teaching method is typically by class    
+    Outcome is observed by student  
+  + New hygiene protocol is usually introduced by hospital (ward)  
+    Outcome is observed by patient  
+
+---
+# Hierarchical models and cluster structures
+* Model equation: $Y_{ijk} = \mu + \alpha_i + \gamma_{ij} + e_{ijk}$
+  subject to constraints $\sum_{i=1}^{I}\alpha_i = 0, \sum_{j=1}^{J}\gamma_{ij} = 0$ for all $i$
+  
+* Factor A ( $\alpha_i$'s) denotes the cluster, e.g. hospital or class
+
+* Factor C ( $\gamma_{ij}$'s) denotes the treatment $j$ within cluster $i$, e.g.
+  hygiene protocol or teaching method.
+  
+* The variability of subjects within a cluster is captured by the error term
+  $e_{ijk}$
+  
+* No term $\beta_j$ here because in each cluster only one treatment is used
+
+---
+# Repeated measurements and random effects
+
+* So far: only independent observations
+* Dependent observations on subjects may arise
+  + if multiple measurement are made on one subject
+  + if observations are clustered
+
+* Examples
+  + Repeated measurements
+      - Observe one subject at several time points
+      - Each subject receives the same set of treatments 
+  + Clustered data 
+      - Patients within a hospital
+      - Animals within a litter
+      - Students within a class
+      - Clusters per se are not of interest but there may be variation 
+        between clusters
+      - Subject within a cluster may be more homogeneous
+
+---
+# Repeated measurement ANOVA
+
+* At first the model looks similar to the one way model:  
+  $Y_{ij} = \mu + \alpha_i + e_{ij}$
+  
+* $\alpha_i$ could describe a time effect
+  
+* However the residuals coming from the same individual $j$ are correlated, not
+  independent.
+
+* This must be taken into account when fitting the model.
+
+* $\left( e_{i1}, \ldots, e_{iJ} \right)$ are assumed to have a 
+  **multivariate** normal distribution.
+
+---
+# Random effects 
+* So far we were interested in the effects as such.
+
+* Sometimes “levels” considered in an experiment are thought of as a random 
+  sample of possible “levels”
+  + e. g. investigators or measuring devices are often considered as 
+    **random effects**
+  + In this case we are not so much interested in the difference of one
+    investigator or device from the mean but rather in the variability of
+    investigators or devices.
+
+---
+# Random effects 
+* Random effects may also be used in repeated measurement analysis and for
+  hierarchical designs.
+  
+* Repeated measurements
+  - We may be interested in a time effect.
+  - We are not interested in the effects of subject per se.
+  - The subjects are considered as a random sample from the universe of
+    possible subjects.
+
+* Cluster designs
+  - We may be interested in a treatment effect.
+  - We are not interested in the effects of clusters per se.
+  - The clusters are considered as a random sample from the universe of
+    possible clusters.
+
+---
+# Linear mixed models
+* A mixed model has both fixed effects and random effects.
+
+* Fixed effects e. g.
+  + Treatment
+  + Time
+  + Genetic background
+  
+* Random effects e. g.
+  + Hospital, class
+  + Patients, students, animals
+  + Device
+  + Replicate
+  
+* Whether an effect should be considered fixed or random depends on aim 
+  of research.
+
+---
+# Repeated measurement as linear mixed model
+* Structure is similar to simple block experiment
+
+* $Y_{ij} = \mu + \alpha_i + b_j + e_{ij}$ with $e_{ij} \sim \mathcal{N}(0,\,\sigma_e^{2})$, and $b_i \sim \mathcal{N}(0,\,\sigma_B^{2})$
+
+* $\alpha_i$ describes a treatment effect ("fixed")
+
+* $b_j$ describes a random subject effect
+  - Data are normally distributed with common variance within cluster
+  - Observations are **independent between clusters**
+  - But as $b_j$ is shared by all subjects in cluster $j$ there is 
+    ** dependency within clusters**
+  - Usual constraints $\sum_{i=1}^I\alpha_i = 0$
+
+---
+# Advantage of using random effects for repeated measurement designs
+* Better handling of missing values
+
+* Partition variance into subject variance and error variance
+
+* Easier interpretation (?)
+
+---
+class: center, middle
+
+# All models are wrong, but some are useful.
+
+ attributed to George Box
+
+---
+class: inverse, center, middle
+
+# The End
+
+
+
+```{r Export_data_to_SAS, include = TRUE, echo = FALSE}
+# This is only needed if data are also to be used in SAS
+# Export data frames to SAS datasets in export format
+write_xpt(data = aov.df,
+          path = paste0(data.directory, "/aov_df.xpt"))
+
+```
